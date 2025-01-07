@@ -11,7 +11,7 @@ TeaCache是什么？——TeaCache是一种Diffusion Cache技术，它无需训�
 cd ComfyUI
 # put ComfyUI-TeaCache to custom_nodes
 cd custom_nodes
-cp -r /path/to/ComfyUI-TeaCache ./
+git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
 ```
 
 Enjoy It!!!
