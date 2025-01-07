@@ -6,5 +6,12 @@ TeaCache是什么？——TeaCache是一种Diffusion Cache技术，它无需训�
 - 经测试，对于FLUX模型，TeaCache可实现1.4倍无损加速，2倍加速无明显质量损失！
 - 支持LoRA！
 - 支持ControlNet!
+# 用法
+```shell
+cd ComfyUI
+# put ComfyUI-TeaCache to custom_nodes
+cd custom_nodes
+cp -r /path/to/ComfyUI-TeaCache ./
+```
 
 Enjoy It!!!
