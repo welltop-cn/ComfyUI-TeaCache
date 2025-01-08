@@ -17,7 +17,7 @@ Timestep Embedding Aware Cache (TeaCache) is a training-free caching approach th
 
 
 ## Demo
-https://github.com/kijai/ComfyUI-SUPIR/assets/40791699/5cae2a24-d425-462c-b89d-df7dcf01595c
+https://github.com/user-attachments/assets/e977cf34-f7d0-4b25-a2e3-10fd62ebfe30
 
 ## Result comparison
 ![](./assets/compare.png)
