@@ -1,17 +1,26 @@
-# TeaCache技术现已整合到ComfyUI！🚀🚀🚀
-TeaCache是什么？——TeaCache是一种Diffusion Cache技术，它无需训练即可以几乎无损的方式大幅加速Diffusion Model推理🚀🚀🚀
-# ComfyUI-TeaCache重要更新：
-- TeaCache现已整合到ComfyUI，与官方原生Diffusion节点兼容！
-- TeaCache使用简单，仅需把我实现的TeaCache节点与comfyui官方节点相连即可无缝使用！
-- 经测试，对于FLUX模型，TeaCache可实现1.4倍无损加速，2倍加速无明显质量损失！
-- 支持LoRA！
-- 支持ControlNet!
-# 用法
-```shell
-cd ComfyUI
-# put ComfyUI-TeaCache to custom_nodes
-cd custom_nodes
-git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
-```
+# ComfyUI-TeaCache
 
-Enjoy It!!!
+## Introduction
+Timestep Embedding Aware Cache (TeaCache) is a training-free caching approach that estimates and leverages the fluctuating differences among model outputs across timesteps, thereby accelerating the inference. TeaCache works well for Image Diffusion models, Video Diffusion Models, and Audio Diffusion Models.
+
+## Updates
+- TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI native nodes.
+- ComfyUI-TeaCache is easy to use, simply connect the TeaCache node with the ComfyUI native nodes for seamless usage.
+- At present, ComfyUI-TeaCache supports FLUX:
+    - It can achieve a 1.4x lossless speedup and a 2x speedup without much visual quality degradation, which are consistent with the original [TeaCache](https://github.com/LiewFeng/TeaCache).
+    - Support FLUX LoRA!
+    - Support FLUX ControlNet!
+
+## Installation
+1. Go to comfyUI custom_nodes folder, `ComfyUI/custom_nodes/`
+2. git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
+
+
+## Demo
+https://github.com/kijai/ComfyUI-SUPIR/assets/40791699/5cae2a24-d425-462c-b89d-df7dcf01595c
+
+## Result comparison
+![](./assets/compare.png)
+
+## Acknowledgments
+Thanks to TeaCache repo owner [ali-vilab/TeaCache: Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model](https://github.com/ali-vilab/TeaCache)
