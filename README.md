@@ -15,6 +15,10 @@ Timestep Embedding Aware Cache (TeaCache) is a training-free caching approach th
 1. Go to comfyUI custom_nodes folder, `ComfyUI/custom_nodes/`
 2. git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
 
+## Usage
+The demo workflow is placed in examples/teacache_example.json
+
+<img src="./assets/teacache_snipaste.png" alt="teacache_snipaste" width="1000">
 
 ## Demo
 https://github.com/user-attachments/assets/e977cf34-f7d0-4b25-a2e3-10fd62ebfe30
