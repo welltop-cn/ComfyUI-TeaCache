@@ -26,5 +26,10 @@ https://github.com/user-attachments/assets/e977cf34-f7d0-4b25-a2e3-10fd62ebfe30
 ## Result comparison
 ![](./assets/compare.png)
 
+## Roadmap
+
+- [ ] Support HunyuanVideo
+- [ ] Support LTX-Video
+
 ## Acknowledgments
 Thanks to TeaCache repo owner [ali-vilab/TeaCache: Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model](https://github.com/ali-vilab/TeaCache)
