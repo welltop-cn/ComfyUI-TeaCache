@@ -1,4 +1,5 @@
 import math
+import copy
 import torch
 import numpy as np
 
@@ -446,6 +447,7 @@ class TeaCacheForImgGen:
     
     def apply_teacache(self, model, enable_teacache: bool, model_type: str, rel_l1_thresh: float, steps: int):
         if enable_teacache:
+            model = copy.deepcopy(model)
             model.model.diffusion_model.__class__.cnt = 0
             model.model.diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
             model.model.diffusion_model.__class__.steps = steps
@@ -487,6 +489,7 @@ class TeaCacheForVidGen:
     
     def apply_teacache(self, model, enable_teacache: bool, model_type: str, rel_l1_thresh: float, steps: int):
         if enable_teacache:
+            model = copy.deepcopy(model)
             model.model.diffusion_model.__class__.cnt = 0
             model.model.diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
             model.model.diffusion_model.__class__.steps = steps
