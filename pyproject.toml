@@ -9,6 +9,6 @@ Repository = "https://github.com/welltop-cn/ComfyUI-TeaCache"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "yunjieyu"
 DisplayName = "ComfyUI-TeaCache"
 Icon = ""
