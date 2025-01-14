@@ -6,6 +6,9 @@ Timestep Embedding Aware Cache ([TeaCache](https://github.com/ali-vilab/TeaCache
 TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI native nodes. ComfyUI-TeaCache is easy to use, simply connect the TeaCache node with the ComfyUI native nodes for seamless usage.
 
 ## Updates
+- Jan 14 2025: ComfyUI-TeaCache supports Compile Model and fixs a bug that TeaCache keeps forever even if we remove/bypass the node:
+    - Support Compile Model, now it can bring a faster inference when you add Compile Model node!
+    - Fixs a bug related to usability, now we can go back to the workflow state without TeaCache if we remove/bypass TeaCache node.
 - Jan 10 2025: ComfyUI-TeaCache supports LTX-Video:
     - It can achieve a 1.4x lossless speedup and a 1.7x speedup without much visual quality degradation.
     - Support Text to Video and Image to Video!
@@ -22,16 +25,23 @@ Installation via ComfyUI-Manager is preferred. Simply search for ComfyUI-TeaCach
 1. Go to comfyUI custom_nodes folder, `ComfyUI/custom_nodes/`
 2. git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
 
-## Recommended settings
-The following table gives the recommended rel_l1_thresh ​for different models:
+## Usage
+### TeaCache
+To use TeaCache node, simply add `TeaCache For Img Gen` or `TeaCache For Vid Gen` node to your workflow after `Load Diffusion Model` node or `Load LoRA` node (if you need LoRA). The following table gives the recommended rel_l1_thresh ​for different models:
 
 |                       |            FLUX              |      HunyuanVideo     |       LTX-Video       |
 |:---------------------:|:----------------------------:|:---------------------:|:---------------------:|
 |    rel_l1_thresh      |             0.4              |         0.15          |        0.06           |
 |       speedup         |             ~2x              |         ~2x           |        ~1.7x          |
 
-## Usage
-The demo workflows are placed in examples folder.
+The demo workflows ([teacache_flux](./examples/teacache_flux.json), [teacache_hunyuanvideo](./examples/teacache_hunyuanvideo.json), [teacache_ltx_video](./examples/teacache_ltx_video.json)) are placed in examples folder.
+
+### Compile Model
+To use Compile Model node, simply add `Compile Model` node to your workflow after TeaCache node. Compile Model uses `torch.compile` to enhance the model performance by compiling model into more efficient intermediate representations (IRs). This compilation process leverages backend compilers to generate optimized code, which can significantly speed up inference. The compilation may take long time when you run the workflow at first, but once it is compiled, inference is extremely fast. The usage is shown below:
+![](./assets/compile.png)
+
+The demo workflows ([teacache_compile_flux](./examples/teacache_compile_flux.json), [teacache_compile_hunyuanvideo](./examples/teacache_compile_hunyuanvideo.json), [teacache_compile_ltx_video](./examples/teacache_compile_ltx_video.json)) are also placed in examples folder.
+
 
 ## Demo
 - <p><strong>FLUX</strong></p>
