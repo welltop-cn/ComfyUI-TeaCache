@@ -9,9 +9,9 @@ TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI
 - Jan 14 2025: ComfyUI-TeaCache supports Compile Model and fixs a bug that TeaCache keeps forever even if we remove/bypass the node:
     - Support Compile Model, now it can bring a faster inference when you add Compile Model node!
     - Fixs a bug related to usability, now we can go back to the workflow state without TeaCache if we remove/bypass TeaCache node.
-- Jan 13 2025: ComfyUI-TeaCache remove the Steps setting from the node:
-    - Now, It works fine even if there are multiple sampling nodes with different sampling steps in the workflow.
-    - Fixs a bug 'RuntimeError The size of tensor a must match the size of tensor b at non-singleton dimension'.
+- Jan 13 2025: Thanks [@fantacytyx](https://github.com/fantacytyx), ComfyUI-TeaCache remove the Steps setting from the node:
+    - Now, it works fine even if there are multiple sampling nodes with different sampling steps in the workflow.
+    - Fixs a bug, RuntimeError: The size of tensor a must match the size of tensor b at non-singleton dimension.
 - Jan 10 2025: ComfyUI-TeaCache supports LTX-Video:
     - It can achieve a 1.4x lossless speedup and a 1.7x speedup without much visual quality degradation.
     - Support Text to Video and Image to Video!
