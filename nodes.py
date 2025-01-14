@@ -58,23 +58,23 @@ def teacache_flux_forward(
         modulated_inp = self.double_blocks[0].img_norm1(inp)
         modulated_inp = (1 + img_mod1.scale) * modulated_inp + img_mod1.shift
 
-        if self.cnt == 0 or self.cnt == self.steps - 1:
+        if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
-        else: 
-            coefficients = [4.98651651e+02, -2.83781631e+02, 5.58554382e+01, -3.82021401e+00, 2.64230861e-01]
-            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-            if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
-                should_calc = False
-            else:
+        else:
+            try:
+                coefficients = [4.98651651e+02, -2.83781631e+02, 5.58554382e+01, -3.82021401e+00, 2.64230861e-01]
+                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+                if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
+                    should_calc = False
+                else:
+                    should_calc = True
+                    self.accumulated_rel_l1_distance = 0
+            except:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
-                
-        self.previous_modulated_input = modulated_inp 
-        self.cnt += 1
 
-        if self.cnt == self.steps:
-            self.cnt = 0
+        self.previous_modulated_input = modulated_inp
 
         if not should_calc:
             img += self.previous_residual
@@ -145,6 +145,7 @@ def teacache_flux_forward(
             self.previous_residual = img - ori_img
 
         img = self.final_layer(img, vec)  # (N, T, patch_size ** 2 * out_channels)
+        
         return img
 
 def teacache_hunyuanvideo_forward(
@@ -199,23 +200,23 @@ def teacache_hunyuanvideo_forward(
         modulated_inp = self.double_blocks[0].img_norm1(inp)
         modulated_inp = (1 + img_mod1.scale) * modulated_inp + img_mod1.shift
 
-        if self.cnt == 0 or self.cnt == self.steps - 1:
+        if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
-        else: 
-            coefficients = [7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02]
-            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-            if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
-                should_calc = False
-            else:
+        else:
+            try:
+                coefficients = [7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02]
+                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+                if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
+                    should_calc = False
+                else:
+                    should_calc = True
+                    self.accumulated_rel_l1_distance = 0
+            except:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
-                
-        self.previous_modulated_input = modulated_inp 
-        self.cnt += 1
 
-        if self.cnt == self.steps:
-            self.cnt = 0
+        self.previous_modulated_input = modulated_inp 
 
         if not should_calc:
             img += self.previous_residual
@@ -363,24 +364,25 @@ def teacache_ltxvmodel_forward(
         shift_msa, scale_msa, _, _, _, _ = ada_values.unbind(dim=2)
         modulated_inp = rms_norm(inp)
         modulated_inp = modulated_inp * (1 + scale_msa) + shift_msa
-
-        if self.cnt == 0 or self.cnt == self.steps - 1:
+        
+        if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
-        else: 
-            coefficients = [2.14700694e+01, -1.28016453e+01, 2.31279151e+00, 7.92487521e-01, 9.69274326e-03]
-            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-            if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
-                should_calc = False
-            else:
+        else:
+            try:
+                coefficients = [2.14700694e+01, -1.28016453e+01, 2.31279151e+00, 7.92487521e-01, 9.69274326e-03]
+                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+                if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
+                    should_calc = False
+                else:
+                    should_calc = True
+                    self.accumulated_rel_l1_distance = 0
+            except:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
                 
-        self.previous_modulated_input = modulated_inp 
-        self.cnt += 1
+        self.previous_modulated_input = modulated_inp
 
-        if self.cnt == self.steps:
-            self.cnt = 0
         
         if not should_calc:
             x += self.previous_residual
@@ -437,8 +439,7 @@ class TeaCacheForImgGen:
             "required": {
                 "model": ("MODEL", {"tooltip": "The image diffusion model the TeaCache will be applied to."}),
                 "model_type": (["flux"],),
-                "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
-                "steps": ("INT", {"default": 25, "min": 1, "max": 10000, "step": 1}),
+                "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."})
             }
         }
     
@@ -447,12 +448,10 @@ class TeaCacheForImgGen:
     CATEGORY = "TeaCache"
     TITLE = "TeaCache For Img Gen"
     
-    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float, steps: int):
+    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float):
         new_model = model.clone()
         diffusion_model = new_model.get_model_object("diffusion_model")
-        diffusion_model.__class__.cnt = 0
         diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
-        diffusion_model.__class__.steps = steps
 
         if model_type == "flux":
             forward_name = "forward_orig"
@@ -481,8 +480,7 @@ class TeaCacheForVidGen:
             "required": {
                 "model": ("MODEL", {"tooltip": "The video diffusion model the TeaCache will be applied to."}),
                 "model_type": (["hunyuan_video", "ltxv"],),
-                "rel_l1_thresh": ("FLOAT", {"default": 0.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
-                "steps": ("INT", {"default": 25, "min": 1, "max": 10000, "step": 1}),
+                "rel_l1_thresh": ("FLOAT", {"default": 0.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."})
             }
         }
     
@@ -491,12 +489,10 @@ class TeaCacheForVidGen:
     CATEGORY = "TeaCache"
     TITLE = "TeaCache For Vid Gen"
     
-    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float, steps: int):
+    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float):
         new_model = model.clone()
         diffusion_model = new_model.get_model_object("diffusion_model")
-        diffusion_model.__class__.cnt = 0
         diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
-        diffusion_model.__class__.steps = steps
 
         if model_type == "hunyuan_video":
             forward_name = "forward_orig"
