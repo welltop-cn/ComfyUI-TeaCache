@@ -1,6 +1,6 @@
 {
-  "last_node_id": 40,
-  "last_link_id": 122,
+  "last_node_id": 41,
+  "last_link_id": 124,
   "nodes": [
     {
       "id": 11,
@@ -253,13 +253,13 @@
         130
       ],
       "flags": {},
-      "order": 13,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 121,
+          "link": 124,
           "slot_index": 0
         },
         {
@@ -315,7 +315,7 @@
         46
       ],
       "flags": {},
-      "order": 14,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -359,7 +359,7 @@
         124.53733825683594
       ],
       "flags": {},
-      "order": 16,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -553,7 +553,7 @@
         46
       ],
       "flags": {},
-      "order": 17,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
@@ -594,7 +594,7 @@
         106
       ],
       "flags": {},
-      "order": 15,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -635,7 +635,7 @@
         574.4689331054688
       ],
       "flags": {},
-      "order": 18,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -727,8 +727,8 @@
       "id": 40,
       "type": "TeaCacheForImgGen",
       "pos": [
-        77.93648529052734,
-        1151.0115966796875
+        99.87027740478516,
+        990.72705078125
       ],
       "size": [
         315,
@@ -749,7 +749,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            121
+            123
           ],
           "slot_index": 0
         }
@@ -761,6 +761,47 @@
         "flux",
         0.4,
         30
+      ]
+    },
+    {
+      "id": 41,
+      "type": "CompileModel",
+      "pos": [
+        103.08354187011719,
+        1156.1611328125
+      ],
+      "size": [
+        315,
+        130
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 123
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            124
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CompileModel"
+      },
+      "widgets_values": [
+        "default",
+        "inductor",
+        false,
+        false
       ]
     }
   ],
@@ -902,18 +943,26 @@
       "LATENT"
     ],
     [
-      121,
-      40,
-      0,
-      30,
-      0,
-      "MODEL"
-    ],
-    [
       122,
       12,
       0,
       40,
+      0,
+      "MODEL"
+    ],
+    [
+      123,
+      40,
+      0,
+      41,
+      0,
+      "MODEL"
+    ],
+    [
+      124,
+      41,
+      0,
+      30,
       0,
       "MODEL"
     ]
@@ -922,10 +971,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.5644739300537778,
+      "scale": 0.7513148009015778,
       "offset": [
-        789.503519235993,
-        -441.9800029782946
+        610.4698954060623,
+        -362.9900162421666
       ]
     },
     "groupNodes": {}

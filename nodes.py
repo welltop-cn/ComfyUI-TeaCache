@@ -3,6 +3,7 @@ import torch
 import numpy as np
 
 from torch import Tensor
+from unittest.mock import patch
 
 from comfy.ldm.flux.model import Flux
 from comfy.ldm.flux.layers import timestep_embedding
@@ -10,6 +11,12 @@ from comfy.ldm.hunyuan_video.model import HunyuanVideo
 from comfy.ldm.lightricks.model import LTXVModel, precompute_freqs_cis
 from comfy.ldm.common_dit import rms_norm
 
+
+def poly1d(coefficients, x):
+    result = torch.zeros_like(x)
+    for i, coeff in enumerate(coefficients):
+        result += coeff * (x ** (len(coefficients) - 1 - i))
+    return result
 
 def teacache_flux_forward(
         self,
@@ -56,8 +63,7 @@ def teacache_flux_forward(
             self.accumulated_rel_l1_distance = 0
         else: 
             coefficients = [4.98651651e+02, -2.83781631e+02, 5.58554382e+01, -3.82021401e+00, 2.64230861e-01]
-            rescale_func = np.poly1d(coefficients)
-            self.accumulated_rel_l1_distance += rescale_func(((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()).cpu().item())
+            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
             if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
                 should_calc = False
             else:
@@ -198,8 +204,7 @@ def teacache_hunyuanvideo_forward(
             self.accumulated_rel_l1_distance = 0
         else: 
             coefficients = [7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02]
-            rescale_func = np.poly1d(coefficients)
-            self.accumulated_rel_l1_distance += rescale_func(((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()).cpu().item())
+            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
             if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
                 should_calc = False
             else:
@@ -364,8 +369,7 @@ def teacache_ltxvmodel_forward(
             self.accumulated_rel_l1_distance = 0
         else: 
             coefficients = [2.14700694e+01, -1.28016453e+01, 2.31279151e+00, 7.92487521e-01, 9.69274326e-03]
-            rescale_func = np.poly1d(coefficients)
-            self.accumulated_rel_l1_distance += rescale_func(((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()).cpu().item())
+            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
             if self.accumulated_rel_l1_distance < self.rel_l1_thresh:
                 should_calc = False
             else:
@@ -432,7 +436,6 @@ class TeaCacheForImgGen:
         return {
             "required": {
                 "model": ("MODEL", {"tooltip": "The image diffusion model the TeaCache will be applied to."}),
-                "enable_teacache": ("BOOLEAN", {"default": True, "tooltip": "Enable teacache will speed up inference but may lose visual quality."}),
                 "model_type": (["flux"],),
                 "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
                 "steps": ("INT", {"default": 25, "min": 1, "max": 10000, "step": 1}),
@@ -444,28 +447,32 @@ class TeaCacheForImgGen:
     CATEGORY = "TeaCache"
     TITLE = "TeaCache For Img Gen"
     
-    def apply_teacache(self, model, enable_teacache: bool, model_type: str, rel_l1_thresh: float, steps: int):
-        if enable_teacache:
-            model.model.diffusion_model.__class__.cnt = 0
-            model.model.diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
-            model.model.diffusion_model.__class__.steps = steps
-            if model_type == "flux":
-                model.model.diffusion_model.forward_orig = teacache_flux_forward.__get__(
-                                                        model.model.diffusion_model,
-                                                        model.model.diffusion_model.__class__
-                                                        )
-            else:
-                raise ValueError(f"Unknown type {model_type}")
-        else:
-            if model_type == "flux":
-                model.model.diffusion_model.forward_orig = Flux.forward_orig.__get__(
-                                                        model.model.diffusion_model,
-                                                        model.model.diffusion_model.__class__
-                                                        )
-            else:
-                raise ValueError(f"Unknown type {model_type}")
+    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float, steps: int):
+        new_model = model.clone()
+        diffusion_model = new_model.get_model_object("diffusion_model")
+        diffusion_model.__class__.cnt = 0
+        diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
+        diffusion_model.__class__.steps = steps
 
-        return (model,)
+        if model_type == "flux":
+            forward_name = "forward_orig"
+            replaced_forward_fn = teacache_flux_forward.__get__(
+                                diffusion_model,
+                                diffusion_model.__class__
+                            )
+        else:
+            raise ValueError(f"Unknown type {model_type}")
+        
+        def unet_wrapper_function(model_function, kwargs):
+            input = kwargs["input"]
+            timestep = kwargs["timestep"]
+            c = kwargs["c"]
+            with patch.object(diffusion_model, forward_name, replaced_forward_fn):
+                return model_function(input, timestep, **c)
+
+        new_model.set_model_unet_function_wrapper(unet_wrapper_function)
+        
+        return (new_model,)
     
 class TeaCacheForVidGen:
     @classmethod
@@ -473,7 +480,6 @@ class TeaCacheForVidGen:
         return {
             "required": {
                 "model": ("MODEL", {"tooltip": "The video diffusion model the TeaCache will be applied to."}),
-                "enable_teacache": ("BOOLEAN", {"default": True, "tooltip": "Enable teacache will speed up inference but may lose visual quality."}),
                 "model_type": (["hunyuan_video", "ltxv"],),
                 "rel_l1_thresh": ("FLOAT", {"default": 0.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
                 "steps": ("INT", {"default": 25, "min": 1, "max": 10000, "step": 1}),
@@ -485,40 +491,75 @@ class TeaCacheForVidGen:
     CATEGORY = "TeaCache"
     TITLE = "TeaCache For Vid Gen"
     
-    def apply_teacache(self, model, enable_teacache: bool, model_type: str, rel_l1_thresh: float, steps: int):
-        if enable_teacache:
-            model.model.diffusion_model.__class__.cnt = 0
-            model.model.diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
-            model.model.diffusion_model.__class__.steps = steps
-            if model_type == "hunyuan_video":
-                model.model.diffusion_model.forward_orig = teacache_hunyuanvideo_forward.__get__(
-                                                        model.model.diffusion_model,
-                                                        model.model.diffusion_model.__class__
-                                                        )
-            elif model_type == "ltxv":
-                model.model.diffusion_model.forward = teacache_ltxvmodel_forward.__get__(
-                                                        model.model.diffusion_model,
-                                                        model.model.diffusion_model.__class__
-                                                        )
-            else:
-                raise ValueError(f"Unknown type {model_type}")
-        else:
-            if model_type == "hunyuan_video":
-                model.model.diffusion_model.forward_orig = HunyuanVideo.forward_orig.__get__(
-                                                        model.model.diffusion_model,
-                                                        model.model.diffusion_model.__class__
-                                                        )
-            elif model_type == "ltxv":
-                model.model.diffusion_model.forward = LTXVModel.forward.__get__(
-                                                        model.model.diffusion_model,
-                                                        model.model.diffusion_model.__class__
-                                                        )
-            else:
-                raise ValueError(f"Unknown type {model_type}")
+    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float, steps: int):
+        new_model = model.clone()
+        diffusion_model = new_model.get_model_object("diffusion_model")
+        diffusion_model.__class__.cnt = 0
+        diffusion_model.__class__.rel_l1_thresh = rel_l1_thresh
+        diffusion_model.__class__.steps = steps
 
-        return (model,)
+        if model_type == "hunyuan_video":
+            forward_name = "forward_orig"
+            replaced_forward_fn = teacache_hunyuanvideo_forward.__get__(
+                                diffusion_model,
+                                diffusion_model.__class__
+                            )
+        elif model_type == "ltxv":
+            forward_name = "forward"
+            replaced_forward_fn = teacache_ltxvmodel_forward.__get__(
+                                diffusion_model,
+                                diffusion_model.__class__
+                            )
+        else:
+            raise ValueError(f"Unknown type {model_type}")
+        
+        def unet_wrapper_function(model_function, kwargs):
+            input = kwargs["input"]
+            timestep = kwargs["timestep"]
+            c = kwargs["c"]
+            with patch.object(diffusion_model, forward_name, replaced_forward_fn):
+                return model_function(input, timestep, **c)
+
+        new_model.set_model_unet_function_wrapper(unet_wrapper_function)
+
+        return (new_model,)
+    
+class CompileModel:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model": ("MODEL", {"tooltip": "The diffusion model the torch.compile will be applied to."}),
+                "mode": (["default", "max-autotune", "max-autotune-no-cudagraphs", "reduce-overhead"], {"default": "default"}),
+                "backend": (["inductor","cudagraphs"], {"default": "inductor"}),
+                "fullgraph": ("BOOLEAN", {"default": False, "tooltip": "Enable full graph mode"}),
+                "dynamic": ("BOOLEAN", {"default": False, "tooltip": "Enable dynamic mode"}),
+            }
+        }
+    
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "apply_compile"
+    CATEGORY = "TeaCache"
+    TITLE = "Compile Model"
+    
+    def apply_compile(self, model, mode: str, backend: str, fullgraph: bool, dynamic: bool):
+        new_model = model.clone()
+        new_model.add_object_patch(
+                                "diffusion_model",
+                                torch.compile(
+                                    new_model.get_model_object("diffusion_model"),
+                                    mode=mode,
+                                    backend=backend,
+                                    fullgraph=fullgraph,
+                                    dynamic=dynamic
+                                )
+                            )
+        
+        return (new_model,)
+    
 
 NODE_CLASS_MAPPINGS = {
     "TeaCacheForImgGen": TeaCacheForImgGen,
     "TeaCacheForVidGen": TeaCacheForVidGen,
+    "CompileModel": CompileModel
 }

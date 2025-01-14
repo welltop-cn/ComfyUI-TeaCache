@@ -1,6 +1,6 @@
 {
-  "last_node_id": 89,
-  "last_link_id": 188,
+  "last_node_id": 90,
+  "last_link_id": 190,
   "nodes": [
     {
       "id": 71,
@@ -316,7 +316,7 @@
         46
       ],
       "flags": {},
-      "order": 11,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -357,7 +357,7 @@
         616.7515869140625
       ],
       "flags": {},
-      "order": 12,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -430,13 +430,13 @@
         230
       ],
       "flags": {},
-      "order": 10,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 188
+          "link": 190
         },
         {
           "name": "positive",
@@ -538,8 +538,8 @@
       "id": 89,
       "type": "TeaCacheForVidGen",
       "pos": [
-        862.1427612304688,
-        -115.31109619140625
+        883.0584716796875,
+        -323.0739440917969
       ],
       "size": [
         315,
@@ -560,7 +560,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            188
+            189
           ],
           "slot_index": 0
         }
@@ -572,6 +572,47 @@
         "ltxv",
         0.06,
         30
+      ]
+    },
+    {
+      "id": 90,
+      "type": "CompileModel",
+      "pos": [
+        889.2291870117188,
+        -153.8597412109375
+      ],
+      "size": [
+        315,
+        130
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 189
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            190
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CompileModel"
+      },
+      "widgets_values": [
+        "default",
+        "inductor",
+        false,
+        false
       ]
     }
   ],
@@ -689,8 +730,16 @@
       "MODEL"
     ],
     [
-      188,
+      189,
       89,
+      0,
+      90,
+      0,
+      "MODEL"
+    ],
+    [
+      190,
+      90,
       0,
       72,
       0,
@@ -703,8 +752,8 @@
     "ds": {
       "scale": 0.6830134553650712,
       "offset": [
-        67.19056247475572,
-        283.72050363030013
+        80.98795348793925,
+        512.9846969483236
       ]
     }
   },
