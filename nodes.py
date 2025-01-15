@@ -476,6 +476,9 @@ class TeaCacheForImgGen:
     TITLE = "TeaCache For Img Gen"
     
     def apply_teacache(self, model, model_type: str, rel_l1_thresh: float):
+        if rel_l1_thresh == 0:
+            return (model,)
+
         new_model = model.clone()
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
@@ -519,6 +522,9 @@ class TeaCacheForVidGen:
     TITLE = "TeaCache For Vid Gen"
     
     def apply_teacache(self, model, model_type: str, rel_l1_thresh: float):
+        if rel_l1_thresh == 0:
+            return (model,)
+
         new_model = model.clone()
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
