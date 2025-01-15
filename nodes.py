@@ -32,7 +32,7 @@ def teacache_flux_forward(
         attn_mask: Tensor = None,
     ) -> Tensor:
         patches_replace = transformer_options.get("patches_replace", {})
-        rel_l1_thresh = transformer_options.get("teacache_rel_l1_thresh", {})
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh", {})
         
         if img.ndim != 3 or txt.ndim != 3:
             raise ValueError("Input img and txt tensors must have 3 dimensions.")
@@ -187,7 +187,7 @@ def teacache_hunyuanvideo_forward(
         transformer_options={},
     ) -> Tensor:
         patches_replace = transformer_options.get("patches_replace", {})
-        rel_l1_thresh = transformer_options.get("teacache_rel_l1_thresh", {})
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh", {})
 
         initial_shape = list(img.shape)
         # running on sequences img
@@ -315,7 +315,7 @@ def teacache_ltxvmodel_forward(
         **kwargs
     ):
         patches_replace = transformer_options.get("patches_replace", {})
-        rel_l1_thresh = transformer_options.get("teacache_rel_l1_thresh", {})
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh", {})
 
         indices_grid = self.patchifier.get_grid(
             orig_num_frames=x.shape[2],
@@ -482,7 +482,7 @@ class TeaCacheForImgGen:
         new_model = model.clone()
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
-        new_model.model_options["transformer_options"]["teacache_rel_l1_thresh"] = rel_l1_thresh
+        new_model.model_options["transformer_options"]["rel_l1_thresh"] = rel_l1_thresh
         diffusion_model = new_model.get_model_object("diffusion_model")
 
         if model_type == "flux":
@@ -528,7 +528,7 @@ class TeaCacheForVidGen:
         new_model = model.clone()
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
-        new_model.model_options["transformer_options"]["teacache_rel_l1_thresh"] = rel_l1_thresh
+        new_model.model_options["transformer_options"]["rel_l1_thresh"] = rel_l1_thresh
         diffusion_model = new_model.get_model_object("diffusion_model")
 
         if model_type == "hunyuan_video":
