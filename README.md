@@ -47,14 +47,8 @@ To use TeaCache node, simply add `TeaCache For Img Gen` or `TeaCache For Vid Gen
 The demo workflows ([teacache_flux](./examples/teacache_flux.json), [teacache_pulid_flux](./examples/teacache_pulid_flux.json), [teacache_hunyuanvideo](./examples/teacache_hunyuanvideo.json), [teacache_ltx_video](./examples/teacache_ltx_video.json), [teacache_cogvideox](./examples/teacache_cogvideox.json)) are placed in examples folder.
 
 ### Compile Model
-To use Compile Model node, simply add `Compile Model` node to your workflow after your Load Diffusion Model node or TeaCache node. Compile Model uses `torch.compile` to enhance the model performance by compiling model into more efficient intermediate representations (IRs). This compilation process leverages backend compilers to generate optimized code, which can significantly speed up inference. The compilation may take long time when you run the workflow at first, but once it is compiled, inference is extremely fast. The usage is shown below:
+To use Compile Model node, simply add `Compile Model` node to your workflow after `Load Diffusion Model` node or `TeaCache` node. Compile Model uses `torch.compile` to enhance the model performance by compiling model into more efficient intermediate representations (IRs). This compilation process leverages backend compilers to generate optimized code, which can significantly speed up inference. The compilation may take long time when you run the workflow at first, but once it is compiled, inference is extremely fast. The usage is shown below:
 ![](./assets/compile.png)
-
-**NOTE:** The Compile Model node uses [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html), it requires your computation to meet some software and hardware requirements. If you have problems with the compileModel node, you can remove it from the workflow and only use the TeaCache node. The TeaCache node can still bring you a significant speedup.
-
-**NOTE:** torch.compile does not work on Windows officially, you should not use The Compile Model node, or search on the internet how to make it work.
-
-**NOTE:** Compiling a model with FP8 quantization requires GPUs after Ada like RTX 4090, you should try using FP16/BF16 models or removing the compilation node.
 
 ## Result comparison
 - <p><strong>FLUX</strong></p>
