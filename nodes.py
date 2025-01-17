@@ -563,7 +563,7 @@ class CompileModel:
             "required": {
                 "model": ("MODEL", {"tooltip": "The diffusion model the torch.compile will be applied to."}),
                 "mode": (["default", "max-autotune", "max-autotune-no-cudagraphs", "reduce-overhead"], {"default": "default"}),
-                "backend": (["inductor","cudagraphs"], {"default": "inductor"}),
+                "backend": (["inductor","cudagraphs", "eager", "aot_eager"], {"default": "inductor"}),
                 "fullgraph": ("BOOLEAN", {"default": False, "tooltip": "Enable full graph mode"}),
                 "dynamic": ("BOOLEAN", {"default": False, "tooltip": "Enable dynamic mode"}),
             }
