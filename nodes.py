@@ -1,14 +1,11 @@
 import math
 import torch
-import numpy as np
 
 from torch import Tensor
 from unittest.mock import patch
 
-from comfy.ldm.flux.model import Flux
 from comfy.ldm.flux.layers import timestep_embedding
-from comfy.ldm.hunyuan_video.model import HunyuanVideo
-from comfy.ldm.lightricks.model import LTXVModel, precompute_freqs_cis
+from comfy.ldm.lightricks.model import precompute_freqs_cis
 from comfy.ldm.common_dit import rms_norm
 
 
@@ -471,6 +468,7 @@ class TeaCacheForImgGen:
         }
     
     RETURN_TYPES = ("MODEL",)
+    RETURN_NAMES = ("model",)
     FUNCTION = "apply_teacache"
     CATEGORY = "TeaCache"
     TITLE = "TeaCache For Img Gen"
@@ -517,6 +515,7 @@ class TeaCacheForVidGen:
         }
     
     RETURN_TYPES = ("MODEL",)
+    RETURN_NAMES = ("model",)
     FUNCTION = "apply_teacache"
     CATEGORY = "TeaCache"
     TITLE = "TeaCache For Vid Gen"
@@ -571,6 +570,7 @@ class CompileModel:
         }
     
     RETURN_TYPES = ("MODEL",)
+    RETURN_NAMES = ("model",)
     FUNCTION = "apply_compile"
     CATEGORY = "TeaCache"
     TITLE = "Compile Model"
@@ -596,3 +596,5 @@ NODE_CLASS_MAPPINGS = {
     "TeaCacheForVidGen": TeaCacheForVidGen,
     "CompileModel": CompileModel
 }
+
+NODE_DISPLAY_NAME_MAPPINGS = {k: v.TITLE for k, v in NODE_CLASS_MAPPINGS.items()}
