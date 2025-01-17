@@ -1,1 +1,2 @@
+einops >= 0.7.0
 diffusers >= 0.31.0

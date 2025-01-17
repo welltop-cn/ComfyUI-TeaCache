@@ -34,6 +34,7 @@ Installation via ComfyUI-Manager is preferred. Simply search for ComfyUI-TeaCach
 ### Manual installation
 1. Go to comfyUI custom_nodes folder, `ComfyUI/custom_nodes/`
 2. git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
+3. pip install -r requirements.txt
 
 ## Usage
 ### TeaCache
