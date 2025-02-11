@@ -586,7 +586,6 @@ def patch_optimized_module():
         return object.__getattribute__(self, name)
 
     def __delattr__(self, name):
-        # unload_lora_weights() wants to del peft_config
         return delattr(self._orig_mod, name)
 
     @classmethod
