@@ -556,6 +556,72 @@ class TeaCacheForVidGen:
 
         return (new_model,)
     
+def patch_optimized_module():
+    try:
+        from torch._dynamo.eval_frame import OptimizedModule
+    except ImportError:
+        return
+
+    if getattr(OptimizedModule, "_patched", False):
+        return
+
+    def __getattribute__(self, name):
+        if name == "_orig_mod":
+            return object.__getattribute__(self, "_modules")[name]
+        if name in (
+            "__class__",
+            "_modules",
+            "state_dict",
+            "load_state_dict",
+            "parameters",
+            "named_parameters",
+            "buffers",
+            "named_buffers",
+            "children",
+            "named_children",
+            "modules",
+            "named_modules",
+        ):
+            return getattr(object.__getattribute__(self, "_orig_mod"), name)
+        return object.__getattribute__(self, name)
+
+    def __delattr__(self, name):
+        # unload_lora_weights() wants to del peft_config
+        return delattr(self._orig_mod, name)
+
+    @classmethod
+    def __instancecheck__(cls, instance):
+        return isinstance(instance, OptimizedModule) or issubclass(
+            object.__getattribute__(instance, "__class__"), cls
+        )
+
+    OptimizedModule.__getattribute__ = __getattribute__
+    OptimizedModule.__delattr__ = __delattr__
+    OptimizedModule.__instancecheck__ = __instancecheck__
+    OptimizedModule._patched = True
+
+def patch_same_meta():
+    try:
+        from torch._inductor.fx_passes import post_grad
+    except ImportError:
+        return
+
+    same_meta = getattr(post_grad, "same_meta", None)
+    if same_meta is None:
+        return
+
+    if getattr(same_meta, "_patched", False):
+        return
+
+    def new_same_meta(a, b):
+        try:
+            return same_meta(a, b)
+        except Exception:
+            return False
+
+    post_grad.same_meta = new_same_meta
+    new_same_meta._patched = True
+
 class CompileModel:
     @classmethod
     def INPUT_TYPES(s):
@@ -576,6 +642,10 @@ class CompileModel:
     TITLE = "Compile Model"
     
     def apply_compile(self, model, mode: str, backend: str, fullgraph: bool, dynamic: bool):
+        patch_optimized_module()
+        patch_same_meta()
+        torch._dynamo.config.suppress_errors = True
+        
         new_model = model.clone()
         new_model.add_object_patch(
                                 "diffusion_model",
