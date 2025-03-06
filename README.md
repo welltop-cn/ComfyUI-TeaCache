@@ -6,6 +6,9 @@ Timestep Embedding Aware Cache ([TeaCache](https://github.com/ali-vilab/TeaCache
 TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI native nodes. ComfyUI-TeaCache is easy to use, simply connect the TeaCache node with the ComfyUI native nodes for seamless usage.
 
 ## Updates
+- Mar 6 2025: ComfyUI-TeaCache supports Wan2.1:
+    - It can achieve a 1.5x lossless speedup and a 2x speedup without much visual quality degradation.
+    - Support Text to Video and Image to Video!
 - Jan 17 2025: ComfyUI-TeaCache supports CogVideoX:
     - It can achieve a 1.5x lossless speedup and a 2x speedup without much visual quality degradation.
     - Support Text to Video and Image to Video!
@@ -40,12 +43,23 @@ Installation via ComfyUI-Manager is preferred. Simply search for ComfyUI-TeaCach
 ### TeaCache
 To use TeaCache node, simply add `TeaCache For Img Gen` or `TeaCache For Vid Gen` node to your workflow after `Load Diffusion Model` node or `Load LoRA` node (if you need LoRA). Generally, TeaCache can achieve a speedup of 1.5x to 3x with acceptable visual quality loss. The following table gives the recommended rel_l1_thresh ​for different models:
 
-|                 |       FLUX        |     PuLID-FLUX     |     HunyuanVideo   |    LTX-Video    |    CogVideoX    |
-|:---------------:|:-----------------:|:------------------:|:------------------:|:---------------:|:---------------:|
-| rel_l1_thresh   |        0.4        |        0.4         |        0.15        |     0.06        |     0.3        |
-|    speedup      |        ~2x        |        ~1.7x       |        ~2x         |     ~1.7x       |     ~2x       |
+<div align="center">
 
-The demo workflows ([teacache_flux](./examples/teacache_flux.json), [teacache_pulid_flux](./examples/teacache_pulid_flux.json), [teacache_hunyuanvideo](./examples/teacache_hunyuanvideo.json), [teacache_ltx_video](./examples/teacache_ltx_video.json), [teacache_cogvideox](./examples/teacache_cogvideox.json)) are placed in examples folder.
+| Models              |   rel_l1_thresh   |      speedup       |
+|:-------------------:|:-----------------:|:------------------:|
+| FLUX                |        0.4        |        ~2x         |
+| PuLID-FLUX          |        0.4        |        ~1.7x       |
+| HunyuanVideo        |        0.15       |        ~2x         |
+| LTX-Video           |        0.06       |        ~1.7x       |
+| CogVideoX           |        0.3        |        ~2x         |
+| Wan2.1-T2V-1.3B     |        0.08       |        ~1.7x       |
+| Wan2.1-T2V-14B      |        0.1        |        ~2.3x       |
+| Wan2.1-I2V-14B-480P |        0.26       |        ~2x         |
+| Wan2.1-I2V-14B-720P |        0.25       |        ~1.7x       |
+
+</div>
+
+The demo workflows ([teacache_flux](./examples/teacache_flux.json), [teacache_pulid_flux](./examples/teacache_pulid_flux.json), [teacache_hunyuanvideo](./examples/teacache_hunyuanvideo.json), [teacache_ltx_video](./examples/teacache_ltx_video.json), [teacache_cogvideox](./examples/teacache_cogvideox.json), [teacache_wan2.1_t2v](./examples/teacache_wan2.1_t2v.json) and [teacache_wan2.1_i2v](./examples/teacache_wan2.1_i2v.json)) are placed in examples folder.
 
 ### Compile Model
 To use Compile Model node, simply add `Compile Model` node to your workflow after `Load Diffusion Model` node or `TeaCache` node. Compile Model uses `torch.compile` to enhance the model performance by compiling model into more efficient intermediate representations (IRs). This compilation process leverages backend compilers to generate optimized code, which can significantly speed up inference. The compilation may take long time when you run the workflow at first, but once it is compiled, inference is extremely fast. The usage is shown below:
@@ -66,6 +80,12 @@ https://github.com/user-attachments/assets/8fce9b48-2243-46f1-b411-80e4a53f6f7d
 
 - <p><strong>CogVideoX</strong></p>
 https://github.com/user-attachments/assets/de8f5400-e885-446d-936f-c026a78ba5c2
+
+- <p><strong>Wan2.1-T2V</strong></p>
+https://github.com/user-attachments/assets/2c7428b6-f038-43ab-aae1-efc003a55342
+
+- <p><strong>Wan2.1-I2V</strong></p>
+https://github.com/user-attachments/assets/ae6991e2-d995-4812-a3ed-dd581bb7701b
 
 ## Acknowledgments
 Thanks to TeaCache repo owner [ali-vilab/TeaCache: Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model](https://github.com/ali-vilab/TeaCache)
