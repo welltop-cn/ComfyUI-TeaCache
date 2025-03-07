@@ -580,6 +580,7 @@ class TeaCacheForImgGen:
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
         new_model.model_options["transformer_options"]["rel_l1_thresh"] = rel_l1_thresh
+        new_model.model_options["transformer_options"]["coefficients"] = SUPPORTED_MODELS_COEFFICIENTS[model_type]
         diffusion_model = new_model.get_model_object("diffusion_model")
 
         if model_type == "flux":
