@@ -1,7 +1,7 @@
 [project]
-name = "ComfyUI-TeaCache"
+name = "teacache"
 description = "Unofficial implementation of [ali-vilab/TeaCache](https://github.com/ali-vilab/TeaCache) for ComfyUI"
-version = "1.3.2"
+version = "1.4.0"
 license = {file = "LICENSE"}
 
 [project.urls]

@@ -1,6 +1,6 @@
 {
-  "last_node_id": 72,
-  "last_link_id": 152,
+  "last_node_id": 73,
+  "last_link_id": 155,
   "nodes": [
     {
       "id": 26,
@@ -29,11 +29,11 @@
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "shape": 3,
           "links": [
             107
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -106,11 +106,11 @@
         {
           "name": "LATENT",
           "type": "LATENT",
+          "shape": 3,
           "links": [
             86
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -143,11 +143,11 @@
         {
           "name": "SAMPLER",
           "type": "SAMPLER",
+          "shape": 3,
           "links": [
             85
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -176,17 +176,17 @@
         {
           "name": "IMAGE",
           "type": "IMAGE",
+          "shape": 3,
           "links": [
             126
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         },
         {
           "name": "MASK",
           "type": "MASK",
-          "links": null,
-          "shape": 3
+          "shape": 3,
+          "links": null
         }
       ],
       "properties": {
@@ -216,11 +216,11 @@
         {
           "name": "FACEANALYSIS",
           "type": "FACEANALYSIS",
+          "shape": 3,
           "links": [
             124
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -249,11 +249,11 @@
         {
           "name": "EVA_CLIP",
           "type": "EVA_CLIP",
+          "shape": 3,
           "links": [
             123
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -280,11 +280,11 @@
         {
           "name": "PULIDFLUX",
           "type": "PULIDFLUX",
+          "shape": 3,
           "links": [
             125
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -339,17 +339,17 @@
         {
           "name": "output",
           "type": "LATENT",
+          "shape": 3,
           "links": [
             87
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         },
         {
           "name": "denoised_output",
           "type": "LATENT",
-          "links": null,
-          "shape": 3
+          "shape": 3,
+          "links": null
         }
       ],
       "properties": {
@@ -387,11 +387,11 @@
         {
           "name": "IMAGE",
           "type": "IMAGE",
+          "shape": 3,
           "links": [
             89
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -435,7 +435,7 @@
       ],
       "size": [
         315,
-        106
+        122
       ],
       "flags": {},
       "order": 6,
@@ -445,11 +445,11 @@
         {
           "name": "CLIP",
           "type": "CLIP",
+          "shape": 3,
           "links": [
             132
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -458,7 +458,8 @@
       "widgets_values": [
         "t5xxl_fp16.safetensors",
         "clip_l.safetensors",
-        "flux"
+        "flux",
+        "default"
       ]
     },
     {
@@ -480,11 +481,11 @@
         {
           "name": "VAE",
           "type": "VAE",
+          "shape": 3,
           "links": [
             88
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -513,11 +514,11 @@
         {
           "name": "NOISE",
           "type": "NOISE",
+          "shape": 3,
           "links": [
             84
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -558,11 +559,11 @@
         {
           "name": "SIGMAS",
           "type": "SIGMAS",
+          "shape": 3,
           "links": [
             93
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -593,12 +594,12 @@
         {
           "name": "MODEL",
           "type": "MODEL",
+          "shape": 3,
           "links": [
             141,
             147
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -627,7 +628,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 152
+          "link": 155
         },
         {
           "name": "conditioning",
@@ -639,11 +640,11 @@
         {
           "name": "GUIDER",
           "type": "GUIDER",
+          "shape": 3,
           "links": [
             83
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -694,25 +695,25 @@
         {
           "name": "attn_mask",
           "type": "MASK",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         },
         {
           "name": "prior_image",
           "type": "IMAGE",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         }
       ],
       "outputs": [
         {
           "name": "MODEL",
           "type": "MODEL",
+          "shape": 3,
           "links": [
-            148
+            154
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -730,15 +731,15 @@
       ]
     },
     {
-      "id": 71,
-      "type": "TeaCacheForImgGen",
+      "id": 73,
+      "type": "TeaCache",
       "pos": [
-        1228.98779296875,
-        504.7470397949219
+        1214.045166015625,
+        477.5345153808594
       ],
       "size": [
         315,
-        82
+        106
       ],
       "flags": {},
       "order": 14,
@@ -747,25 +748,26 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 148
+          "link": 154
         }
       ],
       "outputs": [
         {
-          "name": "MODEL",
+          "name": "model",
           "type": "MODEL",
           "links": [
-            152
+            155
           ],
           "slot_index": 0
         }
       ],
       "properties": {
-        "Node name for S&R": "TeaCacheForImgGen"
+        "Node name for S&R": "TeaCache"
       },
       "widgets_values": [
         "flux",
-        0.4
+        0.4,
+        3
       ]
     }
   ],
@@ -907,16 +909,16 @@
       "MODEL"
     ],
     [
-      148,
+      154,
       62,
       0,
-      71,
+      73,
       0,
       "MODEL"
     ],
     [
-      152,
-      71,
+      155,
+      73,
       0,
       47,
       0,
@@ -927,12 +929,22 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.620921323059155,
+      "scale": 0.6209213230591561,
       "offset": [
-        52.21858017949011,
-        279.11370195488706
+        71.23485125658658,
+        174.91854810034815
       ]
-    }
+    },
+    "node_versions": {
+      "comfy-core": "0.3.26",
+      "ComfyUI-PuLID-Flux-Enhanced": "04e1b52320f1f14383afe18959349703623c5b88",
+      "ComfyUI-TeaCache": "b3429ef3dea426d2f167e348b44cd2f5a3674e7d"
+    },
+    "ue_links": [],
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

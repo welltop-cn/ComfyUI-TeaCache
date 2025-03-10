@@ -8,14 +8,15 @@ from unittest.mock import patch
 
 from comfy.ldm.flux.layers import timestep_embedding
 from comfy.ldm.lightricks.model import precompute_freqs_cis
+from comfy.ldm.lightricks.symmetric_patchifier import latent_to_pixel_coords
 from comfy.ldm.common_dit import rms_norm
 from comfy.ldm.wan.model import sinusoidal_embedding_1d
 
 
 SUPPORTED_MODELS_COEFFICIENTS = {
     "flux": [4.98651651e+02, -2.83781631e+02, 5.58554382e+01, -3.82021401e+00, 2.64230861e-01],
-    "hunyuan_video": [7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02],
     "ltxv": [2.14700694e+01, -1.28016453e+01, 2.31279151e+00, 7.92487521e-01, 9.69274326e-03],
+    "hunyuan_video": [7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02],
     "wan2.1_t2v_1.3B": [2.39676752e+03, -1.31110545e+03, 2.01331979e+02, -8.29855975e+00, 1.37887774e-01],
     "wan2.1_t2v_14B": [-5784.54975374, 5449.50911966, -1811.16591783, 256.27178429, -13.02252404],
     "wan2.1_i2v_480p_14B": [-3.02331670e+02, 2.23948934e+02, -5.25463970e+01, 5.87348440e+00, -2.01973289e-01],
@@ -26,7 +27,7 @@ def poly1d(coefficients, x):
     result = torch.zeros_like(x)
     for i, coeff in enumerate(coefficients):
         result += coeff * (x ** (len(coefficients) - 1 - i))
-    return result.abs()
+    return result
 
 def teacache_flux_forward(
         self,
@@ -42,8 +43,9 @@ def teacache_flux_forward(
         attn_mask: Tensor = None,
     ) -> Tensor:
         patches_replace = transformer_options.get("patches_replace", {})
-        rel_l1_thresh = transformer_options.get("rel_l1_thresh", {})
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
+        max_skip_steps = transformer_options.get("max_skip_steps")
         
         if img.ndim != 3 or txt.ndim != 3:
             raise ValueError("Input img and txt tensors must have 3 dimensions.")
@@ -75,17 +77,20 @@ def teacache_flux_forward(
         if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
+        elif self.skip_steps == max_skip_steps:
+            should_calc = True
+            self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
         else:
-            try:
-                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-                if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                    should_calc = False
-                else:
-                    should_calc = True
-                    self.accumulated_rel_l1_distance = 0
-            except:
+            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+            if self.accumulated_rel_l1_distance < rel_l1_thresh:
+                should_calc = False
+                self.skip_steps += 1
+            else:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
+                self.skip_steps = 0
 
         self.previous_modulated_input = modulated_inp
 
@@ -193,24 +198,35 @@ def teacache_hunyuanvideo_forward(
         timesteps: Tensor,
         y: Tensor,
         guidance: Tensor = None,
+        guiding_frame_index=None,
         control=None,
         transformer_options={},
     ) -> Tensor:
         patches_replace = transformer_options.get("patches_replace", {})
-        rel_l1_thresh = transformer_options.get("rel_l1_thresh", {})
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
+        max_skip_steps = transformer_options.get("max_skip_steps")
 
         initial_shape = list(img.shape)
         # running on sequences img
         img = self.img_in(img)
         vec = self.time_in(timestep_embedding(timesteps, 256, time_factor=1.0).to(img.dtype))
 
-        vec = vec + self.vector_in(y[:, :self.params.vec_in_dim])
+        if guiding_frame_index is not None:
+            token_replace_vec = self.time_in(timestep_embedding(guiding_frame_index, 256, time_factor=1.0))
+            vec_ = self.vector_in(y[:, :self.params.vec_in_dim])
+            vec = torch.cat([(vec_ + token_replace_vec).unsqueeze(1), (vec_ + vec).unsqueeze(1)], dim=1)
+            frame_tokens = (initial_shape[-1] // self.patch_size[-1]) * (initial_shape[-2] // self.patch_size[-2])
+            modulation_dims = [(0, frame_tokens, 0), (frame_tokens, None, 1)]
+            modulation_dims_txt = [(0, None, 1)]
+        else:
+            vec = vec + self.vector_in(y[:, :self.params.vec_in_dim])
+            modulation_dims = None
+            modulation_dims_txt = None
 
         if self.params.guidance_embed:
-            if guidance is None:
-                raise ValueError("Didn't get guidance strength for guidance distilled model.")
-            vec = vec + self.guidance_in(timestep_embedding(guidance, 256).to(img.dtype))
+            if guidance is not None:
+                vec = vec + self.guidance_in(timestep_embedding(guidance, 256).to(img.dtype))
 
         if txt_mask is not None and not torch.is_floating_point(txt_mask):
             txt_mask = (txt_mask - 1).to(img.dtype) * torch.finfo(img.dtype).max
@@ -240,17 +256,20 @@ def teacache_hunyuanvideo_forward(
         if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
+        elif self.skip_steps == max_skip_steps:
+            should_calc = True
+            self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
         else:
-            try:
-                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-                if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                    should_calc = False
-                else:
-                    should_calc = True
-                    self.accumulated_rel_l1_distance = 0
-            except:
+            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+            if self.accumulated_rel_l1_distance < rel_l1_thresh:
+                should_calc = False
+                self.skip_steps += 1
+            else:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
+                self.skip_steps = 0
 
         self.previous_modulated_input = modulated_inp 
 
@@ -262,14 +281,14 @@ def teacache_hunyuanvideo_forward(
                 if ("double_block", i) in blocks_replace:
                     def block_wrap(args):
                         out = {}
-                        out["img"], out["txt"] = block(img=args["img"], txt=args["txt"], vec=args["vec"], pe=args["pe"], attn_mask=args["attention_mask"])
+                        out["img"], out["txt"] = block(img=args["img"], txt=args["txt"], vec=args["vec"], pe=args["pe"], attn_mask=args["attention_mask"], modulation_dims_img=args["modulation_dims_img"], modulation_dims_txt=args["modulation_dims_txt"])
                         return out
 
-                    out = blocks_replace[("double_block", i)]({"img": img, "txt": txt, "vec": vec, "pe": pe, "attention_mask": attn_mask}, {"original_block": block_wrap})
+                    out = blocks_replace[("double_block", i)]({"img": img, "txt": txt, "vec": vec, "pe": pe, "attention_mask": attn_mask, 'modulation_dims_img': modulation_dims, 'modulation_dims_txt': modulation_dims_txt}, {"original_block": block_wrap})
                     txt = out["txt"]
                     img = out["img"]
                 else:
-                    img, txt = block(img=img, txt=txt, vec=vec, pe=pe, attn_mask=attn_mask)
+                    img, txt = block(img=img, txt=txt, vec=vec, pe=pe, attn_mask=attn_mask, modulation_dims_img=modulation_dims, modulation_dims_txt=modulation_dims_txt)
 
                 if control is not None: # Controlnet
                     control_i = control.get("input")
@@ -284,13 +303,13 @@ def teacache_hunyuanvideo_forward(
                 if ("single_block", i) in blocks_replace:
                     def block_wrap(args):
                         out = {}
-                        out["img"] = block(args["img"], vec=args["vec"], pe=args["pe"], attn_mask=args["attention_mask"])
+                        out["img"] = block(args["img"], vec=args["vec"], pe=args["pe"], attn_mask=args["attention_mask"], modulation_dims=args["modulation_dims"])
                         return out
 
-                    out = blocks_replace[("single_block", i)]({"img": img, "vec": vec, "pe": pe, "attention_mask": attn_mask}, {"original_block": block_wrap})
+                    out = blocks_replace[("single_block", i)]({"img": img, "vec": vec, "pe": pe, "attention_mask": attn_mask, 'modulation_dims': modulation_dims}, {"original_block": block_wrap})
                     img = out["img"]
                 else:
-                    img = block(img, vec=vec, pe=pe, attn_mask=attn_mask)
+                    img = block(img, vec=vec, pe=pe, attn_mask=attn_mask, modulation_dims=modulation_dims)
 
                 if control is not None: # Controlnet
                     control_o = control.get("output")
@@ -302,7 +321,7 @@ def teacache_hunyuanvideo_forward(
             img = img[:, : img_len]
             self.previous_residual = img - ori_img
 
-        img = self.final_layer(img, vec)  # (N, T, patch_size ** 2 * out_channels)
+        img = self.final_layer(img, vec, modulation_dims=modulation_dims)  # (N, T, patch_size ** 2 * out_channels)
 
         shape = initial_shape[-3:]
         for i in range(len(shape)):
@@ -319,57 +338,37 @@ def teacache_ltxvmodel_forward(
         context,
         attention_mask,
         frame_rate=25,
-        guiding_latent=None,
-        guiding_latent_noise_scale=0,
         transformer_options={},
+        keyframe_idxs=None,
         **kwargs
     ):
         patches_replace = transformer_options.get("patches_replace", {})
-        rel_l1_thresh = transformer_options.get("rel_l1_thresh", {})
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
-
-        indices_grid = self.patchifier.get_grid(
-            orig_num_frames=x.shape[2],
-            orig_height=x.shape[3],
-            orig_width=x.shape[4],
-            batch_size=x.shape[0],
-            scale_grid=((1 / frame_rate) * 8, 32, 32),
-            device=x.device,
-        )
-
-        if guiding_latent is not None:
-            ts = torch.ones([x.shape[0], 1, x.shape[2], x.shape[3], x.shape[4]], device=x.device, dtype=x.dtype)
-            input_ts = timestep.view([timestep.shape[0]] + [1] * (x.ndim - 1))
-            ts *= input_ts
-            ts[:, :, 0] = guiding_latent_noise_scale * (input_ts[:, :, 0] ** 2)
-            timestep = self.patchifier.patchify(ts)
-            input_x = x.clone()
-            x[:, :, 0] = guiding_latent[:, :, 0]
-            if guiding_latent_noise_scale > 0:
-                if self.generator is None:
-                    self.generator = torch.Generator(device=x.device).manual_seed(42)
-                elif self.generator.device != x.device:
-                    self.generator = torch.Generator(device=x.device).set_state(self.generator.get_state())
-
-                noise_shape = [guiding_latent.shape[0], guiding_latent.shape[1], 1, guiding_latent.shape[3], guiding_latent.shape[4]]
-                scale = guiding_latent_noise_scale * (input_ts ** 2)
-                guiding_noise = scale * torch.randn(size=noise_shape, device=x.device, generator=self.generator)
-
-                x[:, :, 0] = guiding_noise[:, :, 0] + x[:, :, 0] *  (1.0 - scale[:, :, 0])
-
+        max_skip_steps = transformer_options.get("max_skip_steps")
 
         orig_shape = list(x.shape)
 
-        x = self.patchifier.patchify(x)
+        x, latent_coords = self.patchifier.patchify(x)
+        pixel_coords = latent_to_pixel_coords(
+            latent_coords=latent_coords,
+            scale_factors=self.vae_scale_factors,
+            causal_fix=self.causal_temporal_positioning,
+        )
+
+        if keyframe_idxs is not None:
+            pixel_coords[:, :, -keyframe_idxs.shape[2]:] = keyframe_idxs
+
+        fractional_coords = pixel_coords.to(torch.float32)
+        fractional_coords[:, 0] = fractional_coords[:, 0] * (1.0 / frame_rate)
 
         x = self.patchify_proj(x)
         timestep = timestep * 1000.0
 
-        attention_mask = 1.0 - attention_mask.to(x.dtype).reshape((attention_mask.shape[0], 1, -1, attention_mask.shape[-1]))
-        attention_mask = attention_mask.masked_fill(attention_mask.to(torch.bool), float("-inf"))  # not sure about this
-        # attention_mask = (context != 0).any(dim=2).to(dtype=x.dtype)
+        if attention_mask is not None and not torch.is_floating_point(attention_mask):
+            attention_mask = (attention_mask - 1).to(x.dtype).reshape((attention_mask.shape[0], 1, -1, attention_mask.shape[-1])) * torch.finfo(x.dtype).max        
 
-        pe = precompute_freqs_cis(indices_grid, dim=self.inner_dim, out_dtype=x.dtype)
+        pe = precompute_freqs_cis(fractional_coords, dim=self.inner_dim, out_dtype=x.dtype)
 
         batch_size = x.shape[0]
         timestep, embedded_timestep = self.adaln_single(
@@ -406,21 +405,23 @@ def teacache_ltxvmodel_forward(
         if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
+        elif self.skip_steps == max_skip_steps:
+            should_calc = True
+            self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
         else:
-            try:
-                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-                if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                    should_calc = False
-                else:
-                    should_calc = True
-                    self.accumulated_rel_l1_distance = 0
-            except:
+            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+            if self.accumulated_rel_l1_distance < rel_l1_thresh:
+                should_calc = False
+                self.skip_steps += 1
+            else:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
-                
+                self.skip_steps = 0
+  
         self.previous_modulated_input = modulated_inp
 
-        
         if not should_calc:
             x += self.previous_residual
         else:
@@ -463,10 +464,6 @@ def teacache_ltxvmodel_forward(
             out_channels=orig_shape[1] // math.prod(self.patchifier.patch_size),
         )
 
-        if guiding_latent is not None:
-            x[:, :, 0] = (input_x[:, :, 0] - guiding_latent[:, :, 0]) / input_ts[:, :, 0]
-
-        # print("res", x)
         return x
 
 def teacache_wanmodel_forward(self, x, timestep, context, clip_fea=None, transformer_options={}, **kwargs):
@@ -494,8 +491,9 @@ def teacache_wanmodel_forward_orig(
         freqs=None,
         transformer_options={},
     ):
-        rel_l1_thresh = transformer_options.get("rel_l1_thresh", {})
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
+        max_skip_steps = transformer_options.get("max_skip_steps")
 
         # embeddings
         x = self.patch_embedding(x.float()).to(x.dtype)
@@ -526,19 +524,22 @@ def teacache_wanmodel_forward_orig(
         if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
+        elif self.skip_steps == max_skip_steps:
+            should_calc = True
+            self.accumulated_rel_l1_distance = 0
+            self.skip_steps = 0
         else:
-            try:
-                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-                if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                    should_calc = False
-                else:
-                    should_calc = True
-                    self.accumulated_rel_l1_distance = 0
-            except:
+            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+            if self.accumulated_rel_l1_distance < rel_l1_thresh:
+                should_calc = False
+                self.skip_steps += 1
+            else:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
+                self.skip_steps = 0
 
-        self.previous_modulated_input = modulated_inp 
+        self.previous_modulated_input = modulated_inp
 
         if not should_calc:
             x += self.previous_residual
@@ -555,14 +556,15 @@ def teacache_wanmodel_forward_orig(
         x = self.unpatchify(x, grid_sizes)
         return x
 
-class TeaCacheForImgGen:
+class TeaCache:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-                "model": ("MODEL", {"tooltip": "The image diffusion model the TeaCache will be applied to."}),
-                "model_type": (["flux"],),
-                "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."})
+                "model": ("MODEL", {"tooltip": "The diffusion model the TeaCache will be applied to."}),
+                "model_type": (["flux", "ltxv", "hunyuan_video", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B"], {"default": "flux", "tooltip": "Supported diffusion model."}),
+                "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
+                "max_skip_steps": ([1, 2, 3], {"default": 3, "tooltip": "Max continuous skip steps."})
             }
         }
     
@@ -570,9 +572,9 @@ class TeaCacheForImgGen:
     RETURN_NAMES = ("model",)
     FUNCTION = "apply_teacache"
     CATEGORY = "TeaCache"
-    TITLE = "TeaCache For Img Gen"
+    TITLE = "TeaCache"
     
-    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float):
+    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float, max_skip_steps: int):
         if rel_l1_thresh == 0:
             return (model,)
 
@@ -580,66 +582,24 @@ class TeaCacheForImgGen:
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
         new_model.model_options["transformer_options"]["rel_l1_thresh"] = rel_l1_thresh
+        new_model.model_options["transformer_options"]["max_skip_steps"] = max_skip_steps
         new_model.model_options["transformer_options"]["coefficients"] = SUPPORTED_MODELS_COEFFICIENTS[model_type]
         diffusion_model = new_model.get_model_object("diffusion_model")
 
-        if model_type == "flux":
-            forward_name = "forward_orig"
-            replaced_forward_fn = teacache_flux_forward.__get__(
-                                diffusion_model,
-                                diffusion_model.__class__
-                            )
-        else:
-            raise ValueError(f"Unknown type {model_type}")
-        
-        def unet_wrapper_function(model_function, kwargs):
-            input = kwargs["input"]
-            timestep = kwargs["timestep"]
-            c = kwargs["c"]
-            with patch.object(diffusion_model, forward_name, replaced_forward_fn):
-                return model_function(input, timestep, **c)
-
-        new_model.set_model_unet_function_wrapper(unet_wrapper_function)
-        
-        return (new_model,)
-    
-class TeaCacheForVidGen:
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "model": ("MODEL", {"tooltip": "The video diffusion model the TeaCache will be applied to."}),
-                "model_type": (["hunyuan_video", "ltxv", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B"],),
-                "rel_l1_thresh": ("FLOAT", {"default": 0.15, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."})
-            }
-        }
-    
-    RETURN_TYPES = ("MODEL",)
-    RETURN_NAMES = ("model",)
-    FUNCTION = "apply_teacache"
-    CATEGORY = "TeaCache"
-    TITLE = "TeaCache For Vid Gen"
-    
-    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float):
-        if rel_l1_thresh == 0:
-            return (model,)
-
-        new_model = model.clone()
-        if 'transformer_options' not in new_model.model_options:
-            new_model.model_options['transformer_options'] = {}
-        new_model.model_options["transformer_options"]["rel_l1_thresh"] = rel_l1_thresh
-        new_model.model_options["transformer_options"]["coefficients"] = SUPPORTED_MODELS_COEFFICIENTS[model_type]
-        diffusion_model = new_model.get_model_object("diffusion_model")
-
-        if "hunyuan_video" in model_type:
+        if "flux" in model_type:
             context = patch.multiple(
                 diffusion_model,
-                forward_orig=teacache_hunyuanvideo_forward.__get__(diffusion_model, diffusion_model.__class__)
+                forward_orig=teacache_flux_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         elif "ltxv" in model_type:
             context = patch.multiple(
                 diffusion_model,
                 forward=teacache_ltxvmodel_forward.__get__(diffusion_model, diffusion_model.__class__)
+            )
+        elif "hunyuan_video" in model_type:
+            context = patch.multiple(
+                diffusion_model,
+                forward_orig=teacache_hunyuanvideo_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         elif "wan2.1" in model_type:
             context = patch.multiple(
@@ -654,6 +614,22 @@ class TeaCacheForVidGen:
             input = kwargs["input"]
             timestep = kwargs["timestep"]
             c = kwargs["c"]
+            # referenced from https://github.com/kijai/ComfyUI-KJNodes/blob/d126b62cebee81ea14ec06ea7cd7526999cb0554/nodes/model_optimization_nodes.py#L868
+            sigmas = c["transformer_options"]["sample_sigmas"]
+            matched_step_index = (sigmas == timestep[0]).nonzero()
+            if len(matched_step_index) > 0:
+                current_step_index = matched_step_index.item()
+            else:
+                current_step_index = 0
+                for i in range(len(sigmas) - 1):
+                    # walk from beginning of steps until crossing the timestep
+                    if (sigmas[i] - timestep) * (sigmas[i + 1] - timestep) <= 0:
+                        current_step_index = i
+                        break
+            
+            if current_step_index == 0 and hasattr(diffusion_model, 'accumulated_rel_l1_distance'):
+                delattr(diffusion_model, 'accumulated_rel_l1_distance')
+                
             with context:
                 return model_function(input, timestep, **c)
 
@@ -766,8 +742,7 @@ class CompileModel:
     
 
 NODE_CLASS_MAPPINGS = {
-    "TeaCacheForImgGen": TeaCacheForImgGen,
-    "TeaCacheForVidGen": TeaCacheForVidGen,
+    "TeaCache": TeaCache,
     "CompileModel": CompileModel
 }
 

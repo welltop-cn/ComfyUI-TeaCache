@@ -6,6 +6,10 @@ Timestep Embedding Aware Cache ([TeaCache](https://github.com/ali-vilab/TeaCache
 TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI native nodes. ComfyUI-TeaCache is easy to use, simply connect the TeaCache node with the ComfyUI native nodes for seamless usage.
 
 ## Updates
+- Mar 10 2025: ComfyUI-TeaCache adds max_skip_steps option and has made some changes for ease of use:
+    - Add max_skip_steps option to enjoy a good trade-off between quality and speed for Wan2.1 models. The best settings are shown in the usage section.
+    - Merge TeaCache For Img Gen and TeaCache For Vid Gen nodes into a single TeaCache node.
+    - Update TeaCache for HunyuanVideo and LTX-Video to match the offical ComfyUI update.
 - Mar 6 2025: ComfyUI-TeaCache supports Wan2.1:
     - It can achieve a 1.5x lossless speedup and a 2x speedup without much visual quality degradation.
     - Support Text to Video and Image to Video!
@@ -41,25 +45,27 @@ Installation via ComfyUI-Manager is preferred. Simply search for ComfyUI-TeaCach
 
 ## Usage
 ### TeaCache
-To use TeaCache node, simply add `TeaCache For Img Gen` or `TeaCache For Vid Gen` node to your workflow after `Load Diffusion Model` node or `Load LoRA` node (if you need LoRA). Generally, TeaCache can achieve a speedup of 1.5x to 3x with acceptable visual quality loss. The following table gives the recommended rel_l1_thresh ​for different models:
+To use TeaCache node, simply add `TeaCache` node to your workflow after `Load Diffusion Model` node or `Load LoRA` node (if you need LoRA). Generally, TeaCache can achieve a speedup of 1.5x to 3x with acceptable visual quality loss. The following table gives the recommended rel_l1_thresh and max_skip_steps ​for different models:
 
 <div align="center">
 
-| Models              |   rel_l1_thresh   |      speedup       |
-|:-------------------:|:-----------------:|:------------------:|
-| FLUX                |        0.4        |        ~2x         |
-| PuLID-FLUX          |        0.4        |        ~1.7x       |
-| HunyuanVideo        |        0.15       |        ~2x         |
-| LTX-Video           |        0.06       |        ~1.7x       |
-| CogVideoX           |        0.3        |        ~2x         |
-| Wan2.1-T2V-1.3B     |        0.08       |        ~1.7x       |
-| Wan2.1-T2V-14B      |        0.1        |        ~2.3x       |
-| Wan2.1-I2V-14B-480P |        0.26       |        ~2x         |
-| Wan2.1-I2V-14B-720P |        0.25       |        ~1.7x       |
+| Models              |   rel_l1_thresh   |   max_skip_steps  |      speedup      |
+|:-------------------:|:-----------------:|:-----------------:|:-----------------:|
+| FLUX                |        0.4        |         3         |        ~2x        |
+| PuLID-FLUX          |        0.4        |         3         |        ~1.7x      |
+| HunyuanVideo        |        0.15       |         3         |        ~1.9x      |
+| LTX-Video           |        0.06       |         3         |        ~1.7x      |
+| CogVideoX           |        0.3        |         3         |        ~2x        |
+| Wan2.1-T2V-1.3B     |        0.08       |         3         |        ~1.6x      |
+| Wan2.1-T2V-14B      |        0.2        |         3         |        ~1.9x      |
+| Wan2.1-I2V-14B-480P |        0.26       |         3         |        ~1.9x      |
+| Wan2.1-I2V-14B-720P |        0.25       |         3         |        ~1.9x      |
 
 </div>
 
-The demo workflows ([teacache_flux](./examples/teacache_flux.json), [teacache_pulid_flux](./examples/teacache_pulid_flux.json), [teacache_hunyuanvideo](./examples/teacache_hunyuanvideo.json), [teacache_ltx_video](./examples/teacache_ltx_video.json), [teacache_cogvideox](./examples/teacache_cogvideox.json), [teacache_wan2.1_t2v](./examples/teacache_wan2.1_t2v.json) and [teacache_wan2.1_i2v](./examples/teacache_wan2.1_i2v.json)) are placed in examples folder.
+If the video after applying TeaCache has multicolored block artifacts, a lower range of motion or even the still frames, please reduce max_skip_steps to 1 or 2.
+
+The demo workflows ([flux](./examples/flux.json), [pulid_flux](./examples/pulid_flux.json), [hunyuanvideo](./examples/hunyuanvideo.json), [ltx_video](./examples/ltx_video.json), [cogvideox](./examples/cogvideox.json), [wan2.1_t2v](./examples/wan2.1_t2v.json) and [wan2.1_i2v](./examples/wan2.1_i2v.json)) are placed in examples folder.
 
 ### Compile Model
 To use Compile Model node, simply add `Compile Model` node to your workflow after `Load Diffusion Model` node or `TeaCache` node. Compile Model uses `torch.compile` to enhance the model performance by compiling model into more efficient intermediate representations (IRs). This compilation process leverages backend compilers to generate optimized code, which can significantly speed up inference. The compilation may take long time when you run the workflow at first, but once it is compiled, inference is extremely fast. The usage is shown below:

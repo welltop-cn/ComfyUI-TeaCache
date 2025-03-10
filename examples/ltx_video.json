@@ -1,6 +1,6 @@
 {
-  "last_node_id": 89,
-  "last_link_id": 188,
+  "last_node_id": 90,
+  "last_link_id": 191,
   "nodes": [
     {
       "id": 71,
@@ -20,8 +20,8 @@
         {
           "name": "latent",
           "type": "LATENT",
-          "link": 168,
-          "shape": 7
+          "shape": 7,
+          "link": 168
         }
       ],
       "outputs": [
@@ -279,7 +279,7 @@
       ],
       "size": [
         315,
-        82
+        98
       ],
       "flags": {},
       "order": 3,
@@ -301,7 +301,8 @@
       },
       "widgets_values": [
         "t5xxl_fp16.safetensors",
-        "ltxv"
+        "ltxv",
+        "default"
       ]
     },
     {
@@ -354,7 +355,7 @@
       ],
       "size": [
         312.7515869140625,
-        616.7515869140625
+        640.7515869140625
       ],
       "flags": {},
       "order": 12,
@@ -368,20 +369,20 @@
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         },
         {
           "name": "meta_batch",
           "type": "VHS_BatchManager",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         }
       ],
       "outputs": [
@@ -402,17 +403,20 @@
         "pix_fmt": "yuv420p",
         "crf": 19,
         "save_metadata": true,
+        "trim_to_audio": false,
         "pingpong": false,
         "save_output": true,
         "videopreview": {
           "hidden": false,
           "paused": false,
           "params": {
-            "filename": "ltxv_00032.mp4",
+            "filename": "ltxv_00076.mp4",
             "subfolder": "",
             "type": "output",
             "format": "video/h264-mp4",
-            "frame_rate": 24
+            "frame_rate": 24,
+            "workflow": "ltxv_00076.png",
+            "fullpath": "/home/yuyunjie/code/ComfyUI/output/ltxv_00076.mp4"
           },
           "muted": false
         }
@@ -436,7 +440,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 188
+          "link": 191
         },
         {
           "name": "positive",
@@ -509,7 +513,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            187
+            190
           ],
           "slot_index": 0
         },
@@ -535,11 +539,11 @@
       ]
     },
     {
-      "id": 89,
-      "type": "TeaCacheForVidGen",
+      "id": 90,
+      "type": "TeaCache",
       "pos": [
-        862.1427612304688,
-        -115.31109619140625
+        865.708251953125,
+        -110.11214447021484
       ],
       "size": [
         315,
@@ -552,26 +556,26 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 187
+          "link": 190
         }
       ],
       "outputs": [
         {
-          "name": "MODEL",
+          "name": "model",
           "type": "MODEL",
           "links": [
-            188
+            191
           ],
           "slot_index": 0
         }
       ],
       "properties": {
-        "Node name for S&R": "TeaCacheForVidGen"
+        "Node name for S&R": "TeaCache"
       },
       "widgets_values": [
         "ltxv",
         0.06,
-        30
+        3
       ]
     }
   ],
@@ -681,16 +685,16 @@
       "IMAGE"
     ],
     [
-      187,
+      190,
       44,
       0,
-      89,
+      90,
       0,
       "MODEL"
     ],
     [
-      188,
-      89,
+      191,
+      90,
       0,
       72,
       0,
@@ -701,12 +705,22 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6830134553650712,
+      "scale": 0.7513148009015777,
       "offset": [
-        67.19056247475572,
-        283.72050363030013
+        91.73110553274871,
+        304.2520181935422
       ]
-    }
+    },
+    "node_versions": {
+      "comfy-core": "0.3.26",
+      "ComfyUI-VideoHelperSuite": "124c913ccdd8a585734ea758c35fa1bab8499c99",
+      "ComfyUI-TeaCache": "b3429ef3dea426d2f167e348b44cd2f5a3674e7d"
+    },
+    "ue_links": [],
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

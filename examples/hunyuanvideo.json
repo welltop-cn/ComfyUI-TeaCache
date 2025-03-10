@@ -1,6 +1,6 @@
 {
-  "last_node_id": 81,
-  "last_link_id": 224,
+  "last_node_id": 82,
+  "last_link_id": 229,
   "nodes": [
     {
       "id": 16,
@@ -21,10 +21,10 @@
         {
           "name": "SAMPLER",
           "type": "SAMPLER",
+          "shape": 3,
           "links": [
             19
-          ],
-          "shape": 3
+          ]
         }
       ],
       "properties": {
@@ -59,11 +59,11 @@
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "shape": 3,
           "links": [
             129
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -107,51 +107,17 @@
         {
           "name": "GUIDER",
           "type": "GUIDER",
+          "shape": 3,
           "links": [
             30
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
         "Node name for S&R": "BasicGuider"
       },
       "widgets_values": []
-    },
-    {
-      "id": 10,
-      "type": "VAELoader",
-      "pos": [
-        0,
-        420
-      ],
-      "size": [
-        350,
-        60
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "links": [
-            206,
-            211
-          ],
-          "slot_index": 0,
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VAELoader"
-      },
-      "widgets_values": [
-        "hunyuan_video_vae_bf16.safetensors"
-      ]
     },
     {
       "id": 11,
@@ -162,21 +128,21 @@
       ],
       "size": [
         350,
-        106
+        122
       ],
       "flags": {},
-      "order": 2,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [
         {
           "name": "CLIP",
           "type": "CLIP",
+          "shape": 3,
           "links": [
             205
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -185,7 +151,8 @@
       "widgets_values": [
         "clip_l.safetensors",
         "llava_llama3_fp8_scaled.safetensors",
-        "hunyuan_video"
+        "hunyuan_video",
+        "default"
       ]
     },
     {
@@ -239,7 +206,7 @@
         170
       ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -300,18 +267,18 @@
         {
           "name": "output",
           "type": "LATENT",
+          "shape": 3,
           "links": [
             181,
             210
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         },
         {
           "name": "denoised_output",
           "type": "LATENT",
-          "links": null,
-          "shape": 3
+          "shape": 3,
+          "links": null
         }
       ],
       "properties": {
@@ -373,7 +340,7 @@
         110
       ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -402,7 +369,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 224,
+          "link": 229,
           "slot_index": 0
         }
       ],
@@ -410,10 +377,10 @@
         {
           "name": "SIGMAS",
           "type": "SIGMAS",
+          "shape": 3,
           "links": [
             20
-          ],
-          "shape": 3
+          ]
         }
       ],
       "properties": {
@@ -437,7 +404,7 @@
         130
       ],
       "flags": {},
-      "order": 5,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -469,7 +436,7 @@
       ],
       "size": [
         292.3946838378906,
-        596.3946533203125
+        620.3946533203125
       ],
       "flags": {},
       "order": 17,
@@ -483,20 +450,20 @@
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         },
         {
           "name": "meta_batch",
           "type": "VHS_BatchManager",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": null,
-          "shape": 7
+          "shape": 7,
+          "link": null
         }
       ],
       "outputs": [
@@ -517,17 +484,20 @@
         "pix_fmt": "yuv420p",
         "crf": 19,
         "save_metadata": true,
+        "trim_to_audio": false,
         "pingpong": false,
         "save_output": true,
         "videopreview": {
           "hidden": false,
           "paused": false,
           "params": {
-            "filename": "teacache_00011.mp4",
+            "filename": "teacache_00082.mp4",
             "subfolder": "",
             "type": "output",
             "format": "video/h264-mp4",
-            "frame_rate": 24
+            "frame_rate": 24,
+            "workflow": "teacache_00082.png",
+            "fullpath": "/home/yuyunjie/code/ComfyUI/output/teacache_00082.mp4"
           },
           "muted": false
         }
@@ -551,7 +521,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 223
+          "link": 228
         }
       ],
       "outputs": [
@@ -629,17 +599,17 @@
         82
       ],
       "flags": {},
-      "order": 6,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [
         {
           "name": "NOISE",
           "type": "NOISE",
+          "shape": 3,
           "links": [
             37
-          ],
-          "shape": 3
+          ]
         }
       ],
       "properties": {
@@ -664,18 +634,18 @@
         82
       ],
       "flags": {},
-      "order": 7,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [
         {
           "name": "MODEL",
           "type": "MODEL",
+          "shape": 3,
           "links": [
-            222
+            227
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -689,11 +659,11 @@
       "bgcolor": "#335"
     },
     {
-      "id": 81,
-      "type": "TeaCacheForVidGen",
+      "id": 82,
+      "type": "TeaCache",
       "pos": [
-        20.529560089111328,
-        102.00926208496094
+        14.720276832580566,
+        89.97886657714844
       ],
       "size": [
         315,
@@ -706,27 +676,61 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 222
+          "link": 227
         }
       ],
       "outputs": [
         {
-          "name": "MODEL",
+          "name": "model",
           "type": "MODEL",
           "links": [
-            223,
-            224
+            228,
+            229
           ],
           "slot_index": 0
         }
       ],
       "properties": {
-        "Node name for S&R": "TeaCacheForVidGen"
+        "Node name for S&R": "TeaCache"
       },
       "widgets_values": [
         "hunyuan_video",
         0.15,
-        25
+        3
+      ]
+    },
+    {
+      "id": 10,
+      "type": "VAELoader",
+      "pos": [
+        -2.535106658935547,
+        466.2682800292969
+      ],
+      "size": [
+        350,
+        60
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "shape": 3,
+          "links": [
+            206,
+            211
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "hunyuan_video_vae_bf16.safetensors"
       ]
     }
   ],
@@ -844,24 +848,24 @@
       "IMAGE"
     ],
     [
-      222,
+      227,
       12,
       0,
-      81,
+      82,
       0,
       "MODEL"
     ],
     [
-      223,
-      81,
+      228,
+      82,
       0,
       67,
       0,
       "MODEL"
     ],
     [
-      224,
-      81,
+      229,
+      82,
       0,
       17,
       0,
@@ -872,16 +876,26 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6830134553650712,
+      "scale": 0.9090909090909091,
       "offset": [
-        553.6828346433346,
-        75.84624922798709
+        424.45821237860434,
+        139.84374290591396
       ]
     },
     "groupNodes": {},
     "workspace_info": {
       "id": "hSBfPb8KVVUoyCyWT3oHM"
-    }
+    },
+    "node_versions": {
+      "comfy-core": "0.3.26",
+      "ComfyUI-VideoHelperSuite": "124c913ccdd8a585734ea758c35fa1bab8499c99",
+      "ComfyUI-TeaCache": "b3429ef3dea426d2f167e348b44cd2f5a3674e7d"
+    },
+    "ue_links": [],
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

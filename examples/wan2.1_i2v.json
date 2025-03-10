@@ -1,6 +1,6 @@
 {
-  "last_node_id": 56,
-  "last_link_id": 114,
+  "last_node_id": 57,
+  "last_link_id": 117,
   "nodes": [
     {
       "id": 39,
@@ -262,7 +262,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 114
+          "link": 117
         }
       ],
       "outputs": [
@@ -513,13 +513,13 @@
           "hidden": false,
           "paused": false,
           "params": {
-            "filename": "teacache_00044.mp4",
+            "filename": "teacache_00092.mp4",
             "subfolder": "",
             "type": "output",
             "format": "video/h264-mp4",
             "frame_rate": 16,
-            "workflow": "teacache_00044.png",
-            "fullpath": "/home/yuyunjie/code/ComfyUI/output/teacache_00044.mp4"
+            "workflow": "teacache_00092.png",
+            "fullpath": "/home/yuyunjie/code/ComfyUI/output/teacache_00092.mp4"
           },
           "muted": false
         }
@@ -588,7 +588,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            113
+            116
           ],
           "slot_index": 0
         }
@@ -602,15 +602,15 @@
       ]
     },
     {
-      "id": 56,
-      "type": "TeaCacheForVidGen",
+      "id": 57,
+      "type": "TeaCache",
       "pos": [
-        336.0735168457031,
-        -95.73665618896484
+        354.6571044921875,
+        -123.38716125488281
       ],
       "size": [
         315,
-        82
+        106
       ],
       "flags": {},
       "order": 8,
@@ -619,7 +619,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 113
+          "link": 116
         }
       ],
       "outputs": [
@@ -627,17 +627,18 @@
           "name": "model",
           "type": "MODEL",
           "links": [
-            114
+            117
           ],
           "slot_index": 0
         }
       ],
       "properties": {
-        "Node name for S&R": "TeaCacheForVidGen"
+        "Node name for S&R": "TeaCache"
       },
       "widgets_values": [
         "wan2.1_i2v_480p_14B",
-        0.26
+        0.26,
+        3
       ]
     }
   ],
@@ -771,16 +772,16 @@
       "IMAGE"
     ],
     [
-      113,
+      116,
       37,
       0,
-      56,
+      57,
       0,
       "MODEL"
     ],
     [
-      114,
-      56,
+      117,
+      57,
       0,
       54,
       0,
@@ -791,16 +792,16 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7627768444385795,
+      "scale": 0.8264462809917354,
       "offset": [
-        336.0382964059074,
-        205.80199013908017
+        191.78943826948876,
+        255.9140408750332
       ]
     },
     "node_versions": {
-      "comfy-core": "0.3.22",
+      "comfy-core": "0.3.26",
       "ComfyUI-VideoHelperSuite": "124c913ccdd8a585734ea758c35fa1bab8499c99",
-      "ComfyUI-TeaCache": "062efbab2ec1296ba721d9985c5cd80c08da0e42"
+      "ComfyUI-TeaCache": "b3429ef3dea426d2f167e348b44cd2f5a3674e7d"
     },
     "ue_links": [],
     "VHS_latentpreview": false,

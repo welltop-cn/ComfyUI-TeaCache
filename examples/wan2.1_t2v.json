@@ -1,6 +1,6 @@
 {
-  "last_node_id": 51,
-  "last_link_id": 98,
+  "last_node_id": 52,
+  "last_link_id": 101,
   "nodes": [
     {
       "id": 39,
@@ -299,50 +299,17 @@
           "hidden": false,
           "paused": false,
           "params": {
-            "filename": "teacache_00029.mp4",
+            "filename": "teacache_00084.mp4",
             "subfolder": "",
             "type": "output",
             "format": "video/h264-mp4",
             "frame_rate": 16,
-            "workflow": "teacache_00029.png",
-            "fullpath": "/home/yuyunjie/code/ComfyUI/output/teacache_00029.mp4"
+            "workflow": "teacache_00084.png",
+            "fullpath": "/home/yuyunjie/code/ComfyUI/output/teacache_00084.mp4"
           },
           "muted": false
         }
       }
-    },
-    {
-      "id": 37,
-      "type": "UNETLoader",
-      "pos": [
-        20,
-        40
-      ],
-      "size": [
-        346.7470703125,
-        82
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            97
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "UNETLoader"
-      },
-      "widgets_values": [
-        "wan2.1_t2v_1.3B_fp16.safetensors",
-        "default"
-      ]
     },
     {
       "id": 3,
@@ -421,7 +388,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 98
+          "link": 101
         }
       ],
       "outputs": [
@@ -442,15 +409,48 @@
       ]
     },
     {
-      "id": 51,
-      "type": "TeaCacheForVidGen",
+      "id": 37,
+      "type": "UNETLoader",
       "pos": [
-        295.4561767578125,
-        -147.876708984375
+        20,
+        40
+      ],
+      "size": [
+        346.7470703125,
+        82
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            100
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "wan2.1_t2v_1.3B_fp16.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 52,
+      "type": "TeaCache",
+      "pos": [
+        386.0345458984375,
+        -121.91252136230469
       ],
       "size": [
         315,
-        82
+        106
       ],
       "flags": {},
       "order": 6,
@@ -459,7 +459,7 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 97
+          "link": 100
         }
       ],
       "outputs": [
@@ -467,17 +467,18 @@
           "name": "model",
           "type": "MODEL",
           "links": [
-            98
+            101
           ],
           "slot_index": 0
         }
       ],
       "properties": {
-        "Node name for S&R": "TeaCacheForVidGen"
+        "Node name for S&R": "TeaCache"
       },
       "widgets_values": [
         "wan2.1_t2v_1.3B",
-        0.08
+        0.08,
+        3
       ]
     }
   ],
@@ -555,16 +556,16 @@
       "IMAGE"
     ],
     [
-      97,
+      100,
       37,
       0,
-      51,
+      52,
       0,
       "MODEL"
     ],
     [
-      98,
-      51,
+      101,
+      52,
       0,
       48,
       0,
@@ -575,16 +576,16 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6934334949441631,
+      "scale": 0.7513148009015777,
       "offset": [
-        509.8357423302538,
-        381.2577148997867
+        302.7703147246433,
+        297.73529230242883
       ]
     },
     "node_versions": {
-      "comfy-core": "0.3.22",
+      "comfy-core": "0.3.26",
       "ComfyUI-VideoHelperSuite": "124c913ccdd8a585734ea758c35fa1bab8499c99",
-      "ComfyUI-TeaCache": "062efbab2ec1296ba721d9985c5cd80c08da0e42"
+      "ComfyUI-TeaCache": "b3429ef3dea426d2f167e348b44cd2f5a3674e7d"
     },
     "ue_links": [],
     "VHS_latentpreview": false,

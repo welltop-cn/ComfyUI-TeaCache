@@ -1,6 +1,6 @@
 {
-  "last_node_id": 40,
-  "last_link_id": 122,
+  "last_node_id": 41,
+  "last_link_id": 125,
   "nodes": [
     {
       "id": 11,
@@ -11,7 +11,7 @@
       ],
       "size": [
         315,
-        106
+        122
       ],
       "flags": {},
       "order": 0,
@@ -21,11 +21,11 @@
         {
           "name": "CLIP",
           "type": "CLIP",
+          "shape": 3,
           "links": [
             10
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -34,7 +34,8 @@
       "widgets_values": [
         "t5xxl_fp16.safetensors",
         "clip_l.safetensors",
-        "flux"
+        "flux",
+        "default"
       ]
     },
     {
@@ -62,11 +63,11 @@
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "shape": 3,
           "links": [
             42
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -122,11 +123,11 @@
         {
           "name": "VAE",
           "type": "VAE",
+          "shape": 3,
           "links": [
             12
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -180,14 +181,14 @@
         {
           "name": "INT",
           "type": "INT",
+          "widget": {
+            "name": "width"
+          },
           "links": [
             112,
             115
           ],
-          "slot_index": 0,
-          "widget": {
-            "name": "width"
-          }
+          "slot_index": 0
         }
       ],
       "title": "width",
@@ -220,14 +221,14 @@
         {
           "name": "INT",
           "type": "INT",
+          "widget": {
+            "name": "height"
+          },
           "links": [
             113,
             114
           ],
-          "slot_index": 0,
-          "widget": {
-            "name": "height"
-          }
+          "slot_index": 0
         }
       ],
       "title": "height",
@@ -250,7 +251,7 @@
       ],
       "size": [
         315,
-        130
+        170
       ],
       "flags": {},
       "order": 13,
@@ -259,38 +260,46 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 121,
+          "link": 125,
           "slot_index": 0
         },
         {
           "name": "width",
           "type": "INT",
-          "link": 115,
-          "slot_index": 1,
+          "pos": [
+            10,
+            84
+          ],
           "widget": {
             "name": "width"
-          }
+          },
+          "link": 115,
+          "slot_index": 1
         },
         {
           "name": "height",
           "type": "INT",
-          "link": 114,
-          "slot_index": 2,
+          "pos": [
+            10,
+            108
+          ],
           "widget": {
             "name": "height"
-          }
+          },
+          "link": 114,
+          "slot_index": 2
         }
       ],
       "outputs": [
         {
           "name": "MODEL",
           "type": "MODEL",
+          "shape": 3,
           "links": [
             54,
             55
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -335,11 +344,11 @@
         {
           "name": "GUIDER",
           "type": "GUIDER",
+          "shape": 3,
           "links": [
             30
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -397,17 +406,17 @@
         {
           "name": "output",
           "type": "LATENT",
+          "shape": 3,
           "links": [
             24
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         },
         {
           "name": "denoised_output",
           "type": "LATENT",
-          "links": null,
-          "shape": 3
+          "shape": 3,
+          "links": null
         }
       ],
       "properties": {
@@ -434,10 +443,10 @@
         {
           "name": "SAMPLER",
           "type": "SAMPLER",
+          "shape": 3,
           "links": [
             19
-          ],
-          "shape": 3
+          ]
         }
       ],
       "properties": {
@@ -456,7 +465,7 @@
       ],
       "size": [
         315,
-        106
+        126
       ],
       "flags": {},
       "order": 10,
@@ -465,29 +474,37 @@
         {
           "name": "width",
           "type": "INT",
-          "link": 112,
+          "pos": [
+            10,
+            36
+          ],
           "widget": {
             "name": "width"
-          }
+          },
+          "link": 112
         },
         {
           "name": "height",
           "type": "INT",
-          "link": 113,
+          "pos": [
+            10,
+            60
+          ],
           "widget": {
             "name": "height"
-          }
+          },
+          "link": 113
         }
       ],
       "outputs": [
         {
           "name": "LATENT",
           "type": "LATENT",
+          "shape": 3,
           "links": [
             116
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -608,10 +625,10 @@
         {
           "name": "SIGMAS",
           "type": "SIGMAS",
+          "shape": 3,
           "links": [
             20
-          ],
-          "shape": 3
+          ]
         }
       ],
       "properties": {
@@ -653,41 +670,6 @@
       ]
     },
     {
-      "id": 25,
-      "type": "RandomNoise",
-      "pos": [
-        480,
-        768
-      ],
-      "size": [
-        315,
-        82
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "NOISE",
-          "type": "NOISE",
-          "links": [
-            37
-          ],
-          "shape": 3
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "RandomNoise"
-      },
-      "widgets_values": [
-        725991276578445,
-        "randomize"
-      ],
-      "color": "#2a363b",
-      "bgcolor": "#3f5159"
-    },
-    {
       "id": 12,
       "type": "UNETLoader",
       "pos": [
@@ -699,18 +681,18 @@
         82
       ],
       "flags": {},
-      "order": 8,
+      "order": 7,
       "mode": 0,
       "inputs": [],
       "outputs": [
         {
           "name": "MODEL",
           "type": "MODEL",
+          "shape": 3,
           "links": [
-            122
+            124
           ],
-          "slot_index": 0,
-          "shape": 3
+          "slot_index": 0
         }
       ],
       "properties": {
@@ -724,11 +706,11 @@
       "bgcolor": "#335"
     },
     {
-      "id": 40,
-      "type": "TeaCacheForImgGen",
+      "id": 41,
+      "type": "TeaCache",
       "pos": [
-        77.93648529052734,
-        1151.0115966796875
+        64.00762939453125,
+        1143.05322265625
       ],
       "size": [
         315,
@@ -741,27 +723,62 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 122
+          "link": 124
         }
       ],
       "outputs": [
         {
-          "name": "MODEL",
+          "name": "model",
           "type": "MODEL",
           "links": [
-            121
+            125
           ],
           "slot_index": 0
         }
       ],
       "properties": {
-        "Node name for S&R": "TeaCacheForImgGen"
+        "Node name for S&R": "TeaCache"
       },
       "widgets_values": [
         "flux",
         0.4,
-        30
+        3
       ]
+    },
+    {
+      "id": 25,
+      "type": "RandomNoise",
+      "pos": [
+        480,
+        768
+      ],
+      "size": [
+        315,
+        82
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "NOISE",
+          "type": "NOISE",
+          "shape": 3,
+          "links": [
+            37
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RandomNoise"
+      },
+      "widgets_values": [
+        725991276578445,
+        "fixed"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
     }
   ],
   "links": [
@@ -902,18 +919,18 @@
       "LATENT"
     ],
     [
-      121,
-      40,
+      124,
+      12,
       0,
-      30,
+      41,
       0,
       "MODEL"
     ],
     [
-      122,
-      12,
+      125,
+      41,
       0,
-      40,
+      30,
       0,
       "MODEL"
     ]
@@ -922,13 +939,22 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.5644739300537778,
+      "scale": 0.6830134553650713,
       "offset": [
-        789.503519235993,
-        -441.9800029782946
+        585.0708074418511,
+        -310.9613966916353
       ]
     },
-    "groupNodes": {}
+    "groupNodes": {},
+    "node_versions": {
+      "comfy-core": "0.3.26",
+      "ComfyUI-TeaCache": "b3429ef3dea426d2f167e348b44cd2f5a3674e7d"
+    },
+    "ue_links": [],
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }
