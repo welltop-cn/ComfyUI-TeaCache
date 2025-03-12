@@ -542,12 +542,12 @@ def teacache_wanmodel_forward_orig(
         self.previous_modulated_input = modulated_inp
 
         if not should_calc:
-            x += self.previous_residual
+            x += self.previous_residual.to(x.device)
         else:
             ori_x = x.clone()
             for block in self.blocks:
                 x = block(x, **kwargs)
-            self.previous_residual = x - ori_x
+            self.previous_residual = (x - ori_x).to(torch.device('cpu'))
 
         # head
         x = self.head(x, e)
