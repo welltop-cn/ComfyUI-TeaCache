@@ -547,7 +547,7 @@ def teacache_wanmodel_forward_orig(
             ori_x = x.clone()
             for block in self.blocks:
                 x = block(x, **kwargs)
-            self.previous_residual = (x - ori_x).to(torch.device('cpu'))
+            self.previous_residual = (x - ori_x).to(torch.device('cpu')) 
 
         # head
         x = self.head(x, e)
