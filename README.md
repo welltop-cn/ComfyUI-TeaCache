@@ -58,8 +58,8 @@ To use TeaCache node, simply add `TeaCache` node to your workflow after `Load Di
 | CogVideoX           |        0.3        |         3         |        ~2x        |
 | Wan2.1-T2V-1.3B     |        0.08       |         3         |        ~1.6x      |
 | Wan2.1-T2V-14B      |        0.2        |         3         |        ~1.9x      |
-| Wan2.1-I2V-14B-480P |        0.26       |         3         |        ~1.9x      |
-| Wan2.1-I2V-14B-720P |        0.25       |         3         |        ~1.9x      |
+| Wan2.1-I2V-480P-14B |        0.26       |         3         |        ~1.9x      |
+| Wan2.1-I2V-720P-14B |        0.25       |         3         |        ~1.9x      |
 
 </div>
 
@@ -88,10 +88,10 @@ https://github.com/user-attachments/assets/8fce9b48-2243-46f1-b411-80e4a53f6f7d
 https://github.com/user-attachments/assets/de8f5400-e885-446d-936f-c026a78ba5c2
 
 - <p><strong>Wan2.1-T2V</strong></p>
-https://github.com/user-attachments/assets/2c7428b6-f038-43ab-aae1-efc003a55342
+https://github.com/user-attachments/assets/562dc8ab-7857-4d07-ac02-c69d7bc31eb0
 
 - <p><strong>Wan2.1-I2V</strong></p>
-https://github.com/user-attachments/assets/ae6991e2-d995-4812-a3ed-dd581bb7701b
+https://github.com/user-attachments/assets/4ba8d9c8-6d23-4f97-90f6-32ec609ef913
 
 ## Acknowledgments
 Thanks to TeaCache repo owner [ali-vilab/TeaCache: Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model](https://github.com/ali-vilab/TeaCache)

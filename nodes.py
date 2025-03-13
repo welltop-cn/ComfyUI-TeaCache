@@ -1,6 +1,7 @@
 import math
 import torch
 import comfy
+import comfy.model_management as mm
 
 from torch import Tensor
 from einops import repeat
@@ -494,6 +495,7 @@ def teacache_wanmodel_forward_orig(
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
         max_skip_steps = transformer_options.get("max_skip_steps")
+        cond_or_uncond = transformer_options.get("cond_or_uncond")
 
         # embeddings
         x = self.patch_embedding(x.float()).to(x.dtype)
@@ -519,35 +521,47 @@ def teacache_wanmodel_forward_orig(
             context=context)
 
         # enable teacache
-        modulated_inp = e
+        modulated_inp = e.to(mm.unet_offload_device())
+        if not hasattr(self, 'teacache_state'):
+            self.teacache_state = {
+                0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0},
+                1: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0}
+            }
 
-        if not hasattr(self, 'accumulated_rel_l1_distance'):
-            should_calc = True
-            self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
-        elif self.skip_steps == max_skip_steps:
-            should_calc = True
-            self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
-        else:
-            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-            if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                should_calc = False
-                self.skip_steps += 1
-            else:
-                should_calc = True
-                self.accumulated_rel_l1_distance = 0
-                self.skip_steps = 0
+        def update_cache_state(cache, modulated_inp):
+            if cache['skip_steps'] == max_skip_steps:
+                cache['should_calc'] = True
+                cache['accumulated_rel_l1_distance'] = 0
+                cache['skip_steps'] = 0
+            elif cache['previous_modulated_input'] is not None:
+                cache['accumulated_rel_l1_distance'] += poly1d(coefficients, ((modulated_inp-cache['previous_modulated_input']).abs().mean() / cache['previous_modulated_input'].abs().mean()))
+                if cache['accumulated_rel_l1_distance'] < rel_l1_thresh:
+                    cache['should_calc'] = False
+                    cache['skip_steps'] += 1
+                else:
+                    cache['should_calc'] = True
+                    cache['accumulated_rel_l1_distance'] = 0
+                    cache['skip_steps'] = 0
+            cache['previous_modulated_input'] = modulated_inp
+            
+        b = int(len(x) / len(cond_or_uncond))
 
-        self.previous_modulated_input = modulated_inp
+        for i, k in enumerate(cond_or_uncond):
+            update_cache_state(self.teacache_state[k], modulated_inp[i*b:(i+1)*b])
+
+        should_calc = False
+        for k in cond_or_uncond:
+            should_calc = (should_calc or self.teacache_state[k]['should_calc'])
 
         if not should_calc:
-            x += self.previous_residual.to(x.device)
+            for i, k in enumerate(cond_or_uncond):
+                x[i*b:(i+1)*b] += self.teacache_state[k]['previous_residual'].to(x.device)
         else:
             ori_x = x.clone()
             for block in self.blocks:
                 x = block(x, **kwargs)
-            self.previous_residual = (x - ori_x).to(torch.device('cpu')) 
+            for i, k in enumerate(cond_or_uncond):
+                self.teacache_state[k]['previous_residual'] = (x - ori_x)[i*b:(i+1)*b].to(mm.unet_offload_device())
 
         # head
         x = self.head(x, e)
@@ -587,21 +601,25 @@ class TeaCache:
         diffusion_model = new_model.get_model_object("diffusion_model")
 
         if "flux" in model_type:
+            is_cfg = False
             context = patch.multiple(
                 diffusion_model,
                 forward_orig=teacache_flux_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         elif "ltxv" in model_type:
+            is_cfg = False
             context = patch.multiple(
                 diffusion_model,
                 forward=teacache_ltxvmodel_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         elif "hunyuan_video" in model_type:
+            is_cfg = False
             context = patch.multiple(
                 diffusion_model,
                 forward_orig=teacache_hunyuanvideo_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         elif "wan2.1" in model_type:
+            is_cfg = True
             context = patch.multiple(
                 diffusion_model, 
                 forward=teacache_wanmodel_forward.__get__(diffusion_model, diffusion_model.__class__), 
@@ -614,6 +632,7 @@ class TeaCache:
             input = kwargs["input"]
             timestep = kwargs["timestep"]
             c = kwargs["c"]
+            cond_or_uncond = kwargs["cond_or_uncond"]
             # referenced from https://github.com/kijai/ComfyUI-KJNodes/blob/d126b62cebee81ea14ec06ea7cd7526999cb0554/nodes/model_optimization_nodes.py#L868
             sigmas = c["transformer_options"]["sample_sigmas"]
             matched_step_index = (sigmas == timestep[0]).nonzero()
@@ -627,8 +646,14 @@ class TeaCache:
                         current_step_index = i
                         break
             
-            if current_step_index == 0 and hasattr(diffusion_model, 'accumulated_rel_l1_distance'):
-                delattr(diffusion_model, 'accumulated_rel_l1_distance')
+            if current_step_index == 0:
+                if is_cfg:
+                    # uncond first
+                    if (1 in cond_or_uncond) and hasattr(diffusion_model, 'teacache_state'):
+                        delattr(diffusion_model, 'teacache_state')
+                else:
+                    if hasattr(diffusion_model, 'accumulated_rel_l1_distance'):
+                        delattr(diffusion_model, 'accumulated_rel_l1_distance')
                 
             with context:
                 return model_function(input, timestep, **c)
