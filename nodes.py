@@ -68,10 +68,8 @@ def teacache_flux_forward(
         blocks_replace = patches_replace.get("dit", {})
 
         # enable teacache
-        inp = img.clone()
-        vec_ = vec.clone()
-        img_mod1, _ = self.double_blocks[0].img_mod(vec_)
-        modulated_inp = self.double_blocks[0].img_norm1(inp)
+        img_mod1, _ = self.double_blocks[0].img_mod(vec)
+        modulated_inp = self.double_blocks[0].img_norm1(img)
         modulated_inp = (1 + img_mod1.scale) * modulated_inp + img_mod1.shift
         ca_idx = 0
 
@@ -84,11 +82,16 @@ def teacache_flux_forward(
             self.accumulated_rel_l1_distance = 0
             self.skip_steps = 0
         else:
-            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-            if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                should_calc = False
-                self.skip_steps += 1
-            else:
+            try:
+                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+                if self.accumulated_rel_l1_distance < rel_l1_thresh:
+                    should_calc = False
+                    self.skip_steps += 1
+                else:
+                    should_calc = True
+                    self.accumulated_rel_l1_distance = 0
+                    self.skip_steps = 0
+            except:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
                 self.skip_steps = 0
@@ -96,7 +99,7 @@ def teacache_flux_forward(
         self.previous_modulated_input = modulated_inp
 
         if not should_calc:
-            img += self.previous_residual
+            img += self.previous_residual.to(img.device)
         else:
             ori_img = img.clone()
             for i, block in enumerate(self.double_blocks):
@@ -183,7 +186,7 @@ def teacache_flux_forward(
                     img = torch.cat((txt, real_img), 1)
 
             img = img[:, txt.shape[1] :, ...]
-            self.previous_residual = img - ori_img
+            self.previous_residual = (img - ori_img).to(mm.unet_offload_device())
 
         img = self.final_layer(img, vec)  # (N, T, patch_size ** 2 * out_channels)
         
@@ -248,10 +251,8 @@ def teacache_hunyuanvideo_forward(
         blocks_replace = patches_replace.get("dit", {})
 
         # enable teacache
-        inp = img.clone()
-        vec_ = vec.clone()
-        img_mod1, _ = self.double_blocks[0].img_mod(vec_)
-        modulated_inp = self.double_blocks[0].img_norm1(inp)
+        img_mod1, _ = self.double_blocks[0].img_mod(vec)
+        modulated_inp = self.double_blocks[0].img_norm1(img)
         modulated_inp = (1 + img_mod1.scale) * modulated_inp + img_mod1.shift
 
         if not hasattr(self, 'accumulated_rel_l1_distance'):
@@ -263,19 +264,24 @@ def teacache_hunyuanvideo_forward(
             self.accumulated_rel_l1_distance = 0
             self.skip_steps = 0
         else:
-            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-            if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                should_calc = False
-                self.skip_steps += 1
-            else:
+            try:
+                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+                if self.accumulated_rel_l1_distance < rel_l1_thresh:
+                    should_calc = False
+                    self.skip_steps += 1
+                else:
+                    should_calc = True
+                    self.accumulated_rel_l1_distance = 0
+                    self.skip_steps = 0
+            except:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
                 self.skip_steps = 0
 
-        self.previous_modulated_input = modulated_inp 
+        self.previous_modulated_input = modulated_inp
 
         if not should_calc:
-            img += self.previous_residual
+            img += self.previous_residual.to(img.device)
         else:
             ori_img = img.clone()
             for i, block in enumerate(self.double_blocks):
@@ -320,7 +326,7 @@ def teacache_hunyuanvideo_forward(
                             img[:, : img_len] += add
 
             img = img[:, : img_len]
-            self.previous_residual = img - ori_img
+            self.previous_residual = (img - ori_img).to(mm.unet_offload_device())
 
         img = self.final_layer(img, vec, modulation_dims=modulation_dims)  # (N, T, patch_size ** 2 * out_channels)
 
@@ -347,6 +353,7 @@ def teacache_ltxvmodel_forward(
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
         max_skip_steps = transformer_options.get("max_skip_steps")
+        cond_or_uncond = transformer_options.get("cond_or_uncond")
 
         orig_shape = list(x.shape)
 
@@ -395,36 +402,53 @@ def teacache_ltxvmodel_forward(
         blocks_replace = patches_replace.get("dit", {})
 
         # enable teacache
-        inp = x.clone()
-        timestep_ = timestep.clone()
+        inp = x.to(mm.unet_offload_device())
+        timestep_ = timestep.to(mm.unet_offload_device())
         num_ada_params = self.transformer_blocks[0].scale_shift_table.shape[0]
-        ada_values = self.transformer_blocks[0].scale_shift_table[None, None] + timestep_.reshape(batch_size, timestep_.size(1), num_ada_params, -1)
+        ada_values = self.transformer_blocks[0].scale_shift_table[None, None].to(timestep_.device) + timestep_.reshape(batch_size, timestep_.size(1), num_ada_params, -1)
         shift_msa, scale_msa, _, _, _, _ = ada_values.unbind(dim=2)
         modulated_inp = rms_norm(inp)
         modulated_inp = modulated_inp * (1 + scale_msa) + shift_msa
-        
-        if not hasattr(self, 'accumulated_rel_l1_distance'):
-            should_calc = True
-            self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
-        elif self.skip_steps == max_skip_steps:
-            should_calc = True
-            self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
-        else:
-            self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
-            if self.accumulated_rel_l1_distance < rel_l1_thresh:
-                should_calc = False
-                self.skip_steps += 1
-            else:
-                should_calc = True
-                self.accumulated_rel_l1_distance = 0
-                self.skip_steps = 0
-  
-        self.previous_modulated_input = modulated_inp
 
+        if not hasattr(self, 'teacache_state'):
+            self.teacache_state = {
+                0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0},
+                1: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0}
+            }
+
+        def update_cache_state(cache, modulated_inp):
+            if cache['skip_steps'] == max_skip_steps:
+                cache['should_calc'] = True
+                cache['accumulated_rel_l1_distance'] = 0
+                cache['skip_steps'] = 0
+            elif cache['previous_modulated_input'] is not None:
+                try:
+                    cache['accumulated_rel_l1_distance'] += poly1d(coefficients, ((modulated_inp-cache['previous_modulated_input']).abs().mean() / cache['previous_modulated_input'].abs().mean()))
+                    if cache['accumulated_rel_l1_distance'] < rel_l1_thresh:
+                        cache['should_calc'] = False
+                        cache['skip_steps'] += 1
+                    else:
+                        cache['should_calc'] = True
+                        cache['accumulated_rel_l1_distance'] = 0
+                        cache['skip_steps'] = 0
+                except:
+                    cache['should_calc'] = True
+                    cache['accumulated_rel_l1_distance'] = 0
+                    cache['skip_steps'] = 0
+            cache['previous_modulated_input'] = modulated_inp
+
+        b = int(len(x) / len(cond_or_uncond))
+        
+        for i, k in enumerate(cond_or_uncond):
+            update_cache_state(self.teacache_state[k], modulated_inp[i*b:(i+1)*b])
+
+        should_calc = False
+        for k in cond_or_uncond:
+            should_calc = (should_calc or self.teacache_state[k]['should_calc'])
+        
         if not should_calc:
-            x += self.previous_residual
+            for i, k in enumerate(cond_or_uncond):
+                x[i*b:(i+1)*b] += self.teacache_state[k]['previous_residual'].to(x.device)
         else:
             ori_x = x.clone()
             for i, block in enumerate(self.transformer_blocks):
@@ -453,7 +477,8 @@ def teacache_ltxvmodel_forward(
             x = self.norm_out(x)
             # Modulation
             x = x * (1 + scale) + shift
-            self.previous_residual = x - ori_x
+            for i, k in enumerate(cond_or_uncond):
+                self.teacache_state[k]['previous_residual'] = (x - ori_x)[i*b:(i+1)*b].to(mm.unet_offload_device())
 
         x = self.proj_out(x)
 
@@ -534,11 +559,16 @@ def teacache_wanmodel_forward_orig(
                 cache['accumulated_rel_l1_distance'] = 0
                 cache['skip_steps'] = 0
             elif cache['previous_modulated_input'] is not None:
-                cache['accumulated_rel_l1_distance'] += poly1d(coefficients, ((modulated_inp-cache['previous_modulated_input']).abs().mean() / cache['previous_modulated_input'].abs().mean()))
-                if cache['accumulated_rel_l1_distance'] < rel_l1_thresh:
-                    cache['should_calc'] = False
-                    cache['skip_steps'] += 1
-                else:
+                try:
+                    cache['accumulated_rel_l1_distance'] += poly1d(coefficients, ((modulated_inp-cache['previous_modulated_input']).abs().mean() / cache['previous_modulated_input'].abs().mean()))
+                    if cache['accumulated_rel_l1_distance'] < rel_l1_thresh:
+                        cache['should_calc'] = False
+                        cache['skip_steps'] += 1
+                    else:
+                        cache['should_calc'] = True
+                        cache['accumulated_rel_l1_distance'] = 0
+                        cache['skip_steps'] = 0
+                except:
                     cache['should_calc'] = True
                     cache['accumulated_rel_l1_distance'] = 0
                     cache['skip_steps'] = 0
@@ -607,7 +637,7 @@ class TeaCache:
                 forward_orig=teacache_flux_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         elif "ltxv" in model_type:
-            is_cfg = False
+            is_cfg = True
             context = patch.multiple(
                 diffusion_model,
                 forward=teacache_ltxvmodel_forward.__get__(diffusion_model, diffusion_model.__class__)
