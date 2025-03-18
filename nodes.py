@@ -118,7 +118,8 @@ def teacache_flux_forward(
                                                             "vec": vec,
                                                             "pe": pe,
                                                             "attn_mask": attn_mask},
-                                                            {"original_block": block_wrap})
+                                                            {"original_block": block_wrap,
+                                                             "transformer_options": transformer_options})
                     txt = out["txt"]
                     img = out["img"]
                 else:
@@ -161,7 +162,8 @@ def teacache_flux_forward(
                                                             "vec": vec,
                                                             "pe": pe,
                                                             "attn_mask": attn_mask}, 
-                                                            {"original_block": block_wrap})
+                                                            {"original_block": block_wrap,
+                                                             "transformer_options": transformer_options})
                     img = out["img"]
                 else:
                     img = block(img, vec=vec, pe=pe, attn_mask=attn_mask)
