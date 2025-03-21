@@ -7,7 +7,7 @@ from torch import Tensor
 from einops import repeat
 from unittest.mock import patch
 
-from comfy.ldm.flux.layers import timestep_embedding
+from comfy.ldm.flux.layers import timestep_embedding, apply_mod
 from comfy.ldm.lightricks.model import precompute_freqs_cis
 from comfy.ldm.lightricks.symmetric_patchifier import latent_to_pixel_coords
 from comfy.ldm.common_dit import rms_norm
@@ -70,7 +70,7 @@ def teacache_flux_forward(
         # enable teacache
         img_mod1, _ = self.double_blocks[0].img_mod(vec)
         modulated_inp = self.double_blocks[0].img_norm1(img)
-        modulated_inp = (1 + img_mod1.scale) * modulated_inp + img_mod1.shift
+        modulated_inp = apply_mod(modulated_inp, (1 + img_mod1.scale), img_mod1.shift)
         ca_idx = 0
 
         if not hasattr(self, 'accumulated_rel_l1_distance'):
@@ -118,8 +118,7 @@ def teacache_flux_forward(
                                                             "vec": vec,
                                                             "pe": pe,
                                                             "attn_mask": attn_mask},
-                                                            {"original_block": block_wrap,
-                                                             "transformer_options": transformer_options})
+                                                            {"original_block": block_wrap})
                     txt = out["txt"]
                     img = out["img"]
                 else:
@@ -162,8 +161,7 @@ def teacache_flux_forward(
                                                             "vec": vec,
                                                             "pe": pe,
                                                             "attn_mask": attn_mask}, 
-                                                            {"original_block": block_wrap,
-                                                             "transformer_options": transformer_options})
+                                                            {"original_block": block_wrap})
                     img = out["img"]
                 else:
                     img = block(img, vec=vec, pe=pe, attn_mask=attn_mask)
@@ -255,7 +253,7 @@ def teacache_hunyuanvideo_forward(
         # enable teacache
         img_mod1, _ = self.double_blocks[0].img_mod(vec)
         modulated_inp = self.double_blocks[0].img_norm1(img)
-        modulated_inp = (1 + img_mod1.scale) * modulated_inp + img_mod1.shift
+        modulated_inp = apply_mod(modulated_inp, (1 + img_mod1.scale), img_mod1.shift, modulation_dims)
 
         if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
