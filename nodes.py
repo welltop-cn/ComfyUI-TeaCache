@@ -588,8 +588,18 @@ def teacache_wanmodel_forward_orig(
                 x[i*b:(i+1)*b] += self.teacache_state[k]['previous_residual'].to(x.device)
         else:
             ori_x = x.clone()
-            for block in self.blocks:
-                x = block(x, **kwargs)
+            patches_replace = transformer_options.get("patches_replace", {})
+            blocks_replace = patches_replace.get("dit", {})
+            for i, block in enumerate(self.blocks):
+                if ("double_block", i) in blocks_replace:
+                    def block_wrap(args):
+                        out = {}
+                        out["img"] = block(args["img"], context=args["txt"], e=args["vec"], freqs=args["pe"])
+                        return out
+                    out = blocks_replace[("double_block", i)]({"img": x, "txt": context, "vec": e0, "pe": freqs}, {"original_block": block_wrap, "transformer_options": transformer_options})
+                    x = out["img"]
+                else:
+                    x = block(x, **kwargs)
             for i, k in enumerate(cond_or_uncond):
                 self.teacache_state[k]['previous_residual'] = (x - ori_x)[i*b:(i+1)*b].to(mm.unet_offload_device())
 
