@@ -6,6 +6,9 @@ Timestep Embedding Aware Cache ([TeaCache](https://github.com/ali-vilab/TeaCache
 TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI native nodes. ComfyUI-TeaCache is easy to use, simply connect the TeaCache node with the ComfyUI native nodes for seamless usage.
 
 ## Updates
+- Mar 26 2025: ComfyUI-TeaCache supports retention mode for Wan2.1 models and HunyuanVideo I2V v2 model:
+    - Retention mode for Wan2.1 models can bring faster generation and better generation quality.
+    - Fixes a bug about HunyuanVideo I2V v2 model.
 - Mar 10 2025: ComfyUI-TeaCache adds max_skip_steps option and has made some changes for ease of use:
     - Add max_skip_steps option to enjoy a good trade-off between quality and speed for Wan2.1 models. The best settings are shown in the usage section.
     - Merge TeaCache For Img Gen and TeaCache For Vid Gen nodes into a single TeaCache node.
@@ -49,21 +52,25 @@ To use TeaCache node, simply add `TeaCache` node to your workflow after `Load Di
 
 <div align="center">
 
-| Models              |   rel_l1_thresh   |   max_skip_steps  |      speedup      |
-|:-------------------:|:-----------------:|:-----------------:|:-----------------:|
-| FLUX                |        0.4        |         3         |        ~2x        |
-| PuLID-FLUX          |        0.4        |         3         |        ~1.7x      |
-| HunyuanVideo        |        0.15       |         3         |        ~1.9x      |
-| LTX-Video           |        0.06       |         3         |        ~1.7x      |
-| CogVideoX           |        0.3        |         3         |        ~2x        |
-| Wan2.1-T2V-1.3B     |        0.08       |         3         |        ~1.6x      |
-| Wan2.1-T2V-14B      |        0.2        |         3         |        ~1.9x      |
-| Wan2.1-I2V-480P-14B |        0.26       |         3         |        ~1.9x      |
-| Wan2.1-I2V-720P-14B |        0.25       |         3         |        ~1.9x      |
+| Models                       |   rel_l1_thresh   |   max_skip_steps  |      speedup      |
+|:----------------------------:|:-----------------:|:-----------------:|:-----------------:|
+| FLUX                         |        0.4        |         3         |        ~2x        |
+| PuLID-FLUX                   |        0.4        |         3         |        ~1.7x      |
+| HunyuanVideo                 |        0.15       |         3         |        ~1.9x      |
+| LTX-Video                    |        0.06       |         3         |        ~1.7x      |
+| CogVideoX                    |        0.3        |         3         |        ~2x        |
+| Wan2.1-T2V-1.3B              |        0.08       |         3         |        ~1.6x      |
+| Wan2.1-T2V-14B               |        0.2        |         3         |        ~1.8x      |
+| Wan2.1-I2V-480P-14B          |        0.26       |         3         |        ~1.9x      |
+| Wan2.1-I2V-720P-14B          |        0.25       |         3         |        ~1.6x      |
+| Wan2.1-T2V-1.3B-ret-mode     |        0.15       |         3         |        ~2.2x      |
+| Wan2.1-T2V-14B-ret-mode      |        0.2        |         3         |        ~2.1x      |
+| Wan2.1-I2V-480P-14B-ret-mode |        0.3        |         3         |        ~2.3x      |
+| Wan2.1-I2V-720P-14B-ret-mode |        0.3        |         3         |        ~2.0x      |
 
 </div>
 
-If the video after applying TeaCache has multicolored block artifacts, a lower range of motion or even the still frames, please reduce max_skip_steps to 1 or 2.
+If the video after applying TeaCache is of low quality, such as a lower range of motion or the still frames, please reduce rel_l1_thresh or max_skip_steps.
 
 The demo workflows ([flux](./examples/flux.json), [pulid_flux](./examples/pulid_flux.json), [hunyuanvideo](./examples/hunyuanvideo.json), [ltx_video](./examples/ltx_video.json), [cogvideox](./examples/cogvideox.json), [wan2.1_t2v](./examples/wan2.1_t2v.json) and [wan2.1_i2v](./examples/wan2.1_i2v.json)) are placed in examples folder.
 
@@ -88,10 +95,10 @@ https://github.com/user-attachments/assets/8fce9b48-2243-46f1-b411-80e4a53f6f7d
 https://github.com/user-attachments/assets/de8f5400-e885-446d-936f-c026a78ba5c2
 
 - <p><strong>Wan2.1-T2V</strong></p>
-https://github.com/user-attachments/assets/562dc8ab-7857-4d07-ac02-c69d7bc31eb0
+https://github.com/user-attachments/assets/8a84a862-1947-4ba8-8298-047d50d8f670
 
 - <p><strong>Wan2.1-I2V</strong></p>
-https://github.com/user-attachments/assets/4ba8d9c8-6d23-4f97-90f6-32ec609ef913
+https://github.com/user-attachments/assets/0ed5c2c6-b749-41cb-9e2b-e152ecd6c7c1
 
 ## Acknowledgments
 Thanks to TeaCache repo owner [ali-vilab/TeaCache: Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model](https://github.com/ali-vilab/TeaCache)

@@ -1,10 +1,8 @@
 import math
 import torch
-import comfy
 import comfy.model_management as mm
 
 from torch import Tensor
-from einops import repeat
 from unittest.mock import patch
 
 from comfy.ldm.flux.layers import timestep_embedding, apply_mod
@@ -21,7 +19,11 @@ SUPPORTED_MODELS_COEFFICIENTS = {
     "wan2.1_t2v_1.3B": [2.39676752e+03, -1.31110545e+03, 2.01331979e+02, -8.29855975e+00, 1.37887774e-01],
     "wan2.1_t2v_14B": [-5784.54975374, 5449.50911966, -1811.16591783, 256.27178429, -13.02252404],
     "wan2.1_i2v_480p_14B": [-3.02331670e+02, 2.23948934e+02, -5.25463970e+01, 5.87348440e+00, -2.01973289e-01],
-    "wan2.1_i2v_720p_14B": [-114.36346466, 65.26524496, -18.82220707, 4.91518089, -0.23412683]
+    "wan2.1_i2v_720p_14B": [-114.36346466, 65.26524496, -18.82220707, 4.91518089, -0.23412683],
+    "wan2.1_t2v_1.3B_ret_mode": [-5.21862437e+04, 9.23041404e+03, -5.28275948e+02, 1.36987616e+01, -4.99875664e-02],
+    "wan2.1_t2v_14B_ret_mode": [-3.03318725e+05, 4.90537029e+04, -2.65530556e+03, 5.87365115e+01, -3.15583525e-01],
+    "wan2.1_i2v_480p_14B_ret_mode": [2.57151496e+05, -3.54229917e+04, 1.40286849e+03, -1.35890334e+01, 1.32517977e-01],
+    "wan2.1_i2v_720p_14B_ret_mode": [8.10705460e+03, 2.13393892e+03, -3.72934672e+02, 1.66203073e+01, -4.17769401e-02],
 }
 
 def poly1d(coefficients, x):
@@ -492,23 +494,7 @@ def teacache_ltxvmodel_forward(
 
         return x
 
-def teacache_wanmodel_forward(self, x, timestep, context, clip_fea=None, transformer_options={}, **kwargs):
-        bs, c, t, h, w = x.shape
-        x = comfy.ldm.common_dit.pad_to_patch_size(x, self.patch_size)
-        patch_size = self.patch_size
-        t_len = ((t + (patch_size[0] // 2)) // patch_size[0])
-        h_len = ((h + (patch_size[1] // 2)) // patch_size[1])
-        w_len = ((w + (patch_size[2] // 2)) // patch_size[2])
-        img_ids = torch.zeros((t_len, h_len, w_len, 3), device=x.device, dtype=x.dtype)
-        img_ids[:, :, :, 0] = img_ids[:, :, :, 0] + torch.linspace(0, t_len - 1, steps=t_len, device=x.device, dtype=x.dtype).reshape(-1, 1, 1)
-        img_ids[:, :, :, 1] = img_ids[:, :, :, 1] + torch.linspace(0, h_len - 1, steps=h_len, device=x.device, dtype=x.dtype).reshape(1, -1, 1)
-        img_ids[:, :, :, 2] = img_ids[:, :, :, 2] + torch.linspace(0, w_len - 1, steps=w_len, device=x.device, dtype=x.dtype).reshape(1, 1, -1)
-        img_ids = repeat(img_ids, "t h w c -> b (t h w) c", b=bs)
-
-        freqs = self.rope_embedder(img_ids).movedim(1, 2)
-        return self.forward_orig(x, timestep, context, clip_fea, freqs, transformer_options)[:, :, :t, :h, :w]
-
-def teacache_wanmodel_forward_orig(
+def teacache_wanmodel_forward(
         self,
         x,
         t,
@@ -517,10 +503,13 @@ def teacache_wanmodel_forward_orig(
         freqs=None,
         transformer_options={},
     ):
+        patches_replace = transformer_options.get("patches_replace", {})
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
         max_skip_steps = transformer_options.get("max_skip_steps")
         cond_or_uncond = transformer_options.get("cond_or_uncond")
+        use_ret_mode = transformer_options.get("use_ret_mode")
+        enable_teacache = transformer_options.get("enable_teacache", True)
 
         # embeddings
         x = self.patch_embedding(x.float()).to(x.dtype)
@@ -539,14 +528,10 @@ def teacache_wanmodel_forward_orig(
             context_clip = self.img_emb(clip_fea)  # bs x 257 x dim
             context = torch.concat([context_clip, context], dim=1)
 
-        # arguments
-        kwargs = dict(
-            e=e0,
-            freqs=freqs,
-            context=context)
+        blocks_replace = patches_replace.get("dit", {})
 
         # enable teacache
-        modulated_inp = e.to(mm.unet_offload_device())
+        modulated_inp = e0.to(mm.unet_offload_device()) if use_ret_mode else e.to(mm.unet_offload_device())
         if not hasattr(self, 'teacache_state'):
             self.teacache_state = {
                 0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0},
@@ -579,17 +564,28 @@ def teacache_wanmodel_forward_orig(
         for i, k in enumerate(cond_or_uncond):
             update_cache_state(self.teacache_state[k], modulated_inp[i*b:(i+1)*b])
 
-        should_calc = False
-        for k in cond_or_uncond:
-            should_calc = (should_calc or self.teacache_state[k]['should_calc'])
+        if enable_teacache:
+            should_calc = False
+            for k in cond_or_uncond:
+                should_calc = (should_calc or self.teacache_state[k]['should_calc'])
+        else:
+            should_calc = True
 
         if not should_calc:
             for i, k in enumerate(cond_or_uncond):
                 x[i*b:(i+1)*b] += self.teacache_state[k]['previous_residual'].to(x.device)
         else:
             ori_x = x.clone()
-            for block in self.blocks:
-                x = block(x, **kwargs)
+            for i, block in enumerate(self.blocks):
+                if ("double_block", i) in blocks_replace:
+                    def block_wrap(args):
+                        out = {}
+                        out["img"] = block(args["img"], context=args["txt"], e=args["vec"], freqs=args["pe"])
+                        return out
+                    out = blocks_replace[("double_block", i)]({"img": x, "txt": context, "vec": e0, "pe": freqs}, {"original_block": block_wrap})
+                    x = out["img"]
+                else:
+                    x = block(x, e=e0, freqs=freqs, context=context)
             for i, k in enumerate(cond_or_uncond):
                 self.teacache_state[k]['previous_residual'] = (x - ori_x)[i*b:(i+1)*b].to(mm.unet_offload_device())
 
@@ -606,7 +602,7 @@ class TeaCache:
         return {
             "required": {
                 "model": ("MODEL", {"tooltip": "The diffusion model the TeaCache will be applied to."}),
-                "model_type": (["flux", "ltxv", "hunyuan_video", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B"], {"default": "flux", "tooltip": "Supported diffusion model."}),
+                "model_type": (["flux", "ltxv", "hunyuan_video", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B", "wan2.1_t2v_1.3B_ret_mode", "wan2.1_t2v_14B_ret_mode", "wan2.1_i2v_480p_14B_ret_mode", "wan2.1_i2v_720p_14B_ret_mode"], {"default": "flux", "tooltip": "Supported diffusion model."}),
                 "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
                 "max_skip_steps": ([1, 2, 3], {"default": 3, "tooltip": "Max continuous skip steps."})
             }
@@ -628,6 +624,7 @@ class TeaCache:
         new_model.model_options["transformer_options"]["rel_l1_thresh"] = rel_l1_thresh
         new_model.model_options["transformer_options"]["max_skip_steps"] = max_skip_steps
         new_model.model_options["transformer_options"]["coefficients"] = SUPPORTED_MODELS_COEFFICIENTS[model_type]
+        new_model.model_options["transformer_options"]["use_ret_mode"] = "ret_mode" in model_type
         diffusion_model = new_model.get_model_object("diffusion_model")
 
         if "flux" in model_type:
@@ -651,9 +648,8 @@ class TeaCache:
         elif "wan2.1" in model_type:
             is_cfg = True
             context = patch.multiple(
-                diffusion_model, 
-                forward=teacache_wanmodel_forward.__get__(diffusion_model, diffusion_model.__class__), 
-                forward_orig=teacache_wanmodel_forward_orig.__get__(diffusion_model, diffusion_model.__class__)
+                diffusion_model,
+                forward_orig=teacache_wanmodel_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         else:
             raise ValueError(f"Unknown type {model_type}")
@@ -665,6 +661,7 @@ class TeaCache:
             cond_or_uncond = kwargs["cond_or_uncond"]
             # referenced from https://github.com/kijai/ComfyUI-KJNodes/blob/d126b62cebee81ea14ec06ea7cd7526999cb0554/nodes/model_optimization_nodes.py#L868
             sigmas = c["transformer_options"]["sample_sigmas"]
+            use_ret_mode = c["transformer_options"]["use_ret_mode"]
             matched_step_index = (sigmas == timestep[0]).nonzero()
             if len(matched_step_index) > 0:
                 current_step_index = matched_step_index.item()
@@ -672,7 +669,7 @@ class TeaCache:
                 current_step_index = 0
                 for i in range(len(sigmas) - 1):
                     # walk from beginning of steps until crossing the timestep
-                    if (sigmas[i] - timestep) * (sigmas[i + 1] - timestep) <= 0:
+                    if (sigmas[i] - timestep[0]) * (sigmas[i + 1] - timestep[0]) <= 0:
                         current_step_index = i
                         break
             
@@ -684,6 +681,10 @@ class TeaCache:
                 else:
                     if hasattr(diffusion_model, 'accumulated_rel_l1_distance'):
                         delattr(diffusion_model, 'accumulated_rel_l1_distance')
+            
+            current_percent = current_step_index / (len(sigmas) - 1)
+            if use_ret_mode and current_percent < 0.1:
+                c["transformer_options"]["enable_teacache"] = False
                 
             with context:
                 return model_function(input, timestep, **c)
