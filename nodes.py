@@ -582,7 +582,7 @@ def teacache_wanmodel_forward(
                         out = {}
                         out["img"] = block(args["img"], context=args["txt"], e=args["vec"], freqs=args["pe"])
                         return out
-                    out = blocks_replace[("double_block", i)]({"img": x, "txt": context, "vec": e0, "pe": freqs}, {"original_block": block_wrap})
+                    out = blocks_replace[("double_block", i)]({"img": x, "txt": context, "vec": e0, "pe": freqs}, {"original_block": block_wrap, "transformer_options": transformer_options})
                     x = out["img"]
                 else:
                     x = block(x, e=e0, freqs=freqs, context=context)
@@ -683,6 +683,7 @@ class TeaCache:
                         delattr(diffusion_model, 'accumulated_rel_l1_distance')
             
             current_percent = current_step_index / (len(sigmas) - 1)
+            c["transformer_options"]["current_percent"] = current_percent
             if use_ret_mode and current_percent < 0.1:
                 c["transformer_options"]["enable_teacache"] = False
                 
