@@ -502,6 +502,7 @@ def teacache_wanmodel_forward(
         clip_fea=None,
         freqs=None,
         transformer_options={},
+        **kwargs,
     ):
         patches_replace = transformer_options.get("patches_replace", {})
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
