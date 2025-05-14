@@ -20,7 +20,7 @@ def fft(tensor):
     B, C, H, W = tensor.size()
     radius = min(H, W) // 5
             
-    Y, X = torch.meshgrid(torch.arange(H), torch.arange(W))
+    Y, X = torch.meshgrid(torch.arange(H), torch.arange(W), indexing='ij')
     center_x, center_y = W // 2, H // 2
     mask = (X - center_x) ** 2 + (Y - center_y) ** 2 <= radius ** 2
     low_freq_mask = mask.unsqueeze(0).unsqueeze(0).to(tensor.device)
@@ -101,6 +101,12 @@ def teacache_cogvideox_forward(
 
         if self.use_fastercache:
             self.fastercache_counter += 1
+            # Initialize delta_lf and delta_hf if they don't exist, crucial for the FFT path
+            if not hasattr(self, 'delta_lf'):
+                self.delta_lf = torch.tensor(0.0, device=hidden_states.device, dtype=torch.float32) # FFT ops use float32
+            if not hasattr(self, 'delta_hf'):
+                self.delta_hf = torch.tensor(0.0, device=hidden_states.device, dtype=torch.float32)
+
         if self.fastercache_counter >= self.fastercache_start_step + 3 and self.fastercache_counter % 5 != 0:
             if not should_calc:
                 hidden_states += self.previous_residual
@@ -206,7 +212,6 @@ def teacache_cogvideox_forward(
                         controlnet_block_weight = 1.0
                         if isinstance(controlnet_weights, (list, np.ndarray)) or torch.is_tensor(controlnet_weights):
                             controlnet_block_weight = controlnet_weights[i]
-                            print(controlnet_block_weight)
                         elif isinstance(controlnet_weights, (float, int)):
                             controlnet_block_weight = controlnet_weights                    
                         hidden_states = hidden_states + controlnet_states_block * controlnet_block_weight
@@ -275,7 +280,7 @@ class TeaCacheForCogVideoX:
     def apply_teacache(self, model, enable_teacache: bool, rel_l1_thresh: float):
         if enable_teacache:
             transformer = model["pipe"].transformer
-            transformer.__class__.rel_l1_thresh = rel_l1_thresh
+            transformer.rel_l1_thresh = rel_l1_thresh # Set as instance attribute
             transformer.forward = teacache_cogvideox_forward.__get__(
                                 transformer,
                                 transformer.__class__
