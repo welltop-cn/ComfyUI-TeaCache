@@ -1,4 +1,6 @@
 {
+  "id": "41c3eab7-aa3a-407a-a676-387381e77fd3",
+  "revision": 0,
   "last_node_id": 57,
   "last_link_id": 117,
   "nodes": [
@@ -21,14 +23,16 @@
         {
           "name": "VAE",
           "type": "VAE",
+          "slot_index": 0,
           "links": [
             76,
             99
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "VAELoader"
       },
       "widgets_values": [
@@ -60,14 +64,16 @@
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "slot_index": 0,
           "links": [
             98
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "title": "CLIP Text Encode (Negative Prompt)",
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -112,14 +118,14 @@
         },
         {
           "name": "clip_vision_output",
-          "type": "CLIP_VISION_OUTPUT",
           "shape": 7,
+          "type": "CLIP_VISION_OUTPUT",
           "link": 107
         },
         {
           "name": "start_image",
-          "type": "IMAGE",
           "shape": 7,
+          "type": "IMAGE",
           "link": 106
         }
       ],
@@ -127,29 +133,31 @@
         {
           "name": "positive",
           "type": "CONDITIONING",
+          "slot_index": 0,
           "links": [
             101
-          ],
-          "slot_index": 0
+          ]
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
+          "slot_index": 1,
           "links": [
             102
-          ],
-          "slot_index": 1
+          ]
         },
         {
           "name": "latent",
           "type": "LATENT",
+          "slot_index": 2,
           "links": [
             103
-          ],
-          "slot_index": 2
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "WanImageToVideo"
       },
       "widgets_values": [
@@ -184,14 +192,16 @@
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "slot_index": 0,
           "links": [
             97
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "title": "CLIP Text Encode (Positive Prompt)",
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -223,20 +233,22 @@
         {
           "name": "IMAGE",
           "type": "IMAGE",
+          "slot_index": 0,
           "links": [
             106,
             109
-          ],
-          "slot_index": 0
+          ]
         },
         {
           "name": "MASK",
           "type": "MASK",
-          "links": null,
-          "slot_index": 1
+          "slot_index": 1,
+          "links": null
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
@@ -269,13 +281,15 @@
         {
           "name": "MODEL",
           "type": "MODEL",
+          "slot_index": 0,
           "links": [
             111
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "ModelSamplingSD3"
       },
       "widgets_values": [
@@ -291,7 +305,7 @@
       ],
       "size": [
         390,
-        98
+        106
       ],
       "flags": {},
       "order": 2,
@@ -301,14 +315,16 @@
         {
           "name": "CLIP",
           "type": "CLIP",
+          "slot_index": 0,
           "links": [
             74,
             75
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "CLIPLoader"
       },
       "widgets_values": [
@@ -336,13 +352,15 @@
         {
           "name": "CLIP_VISION",
           "type": "CLIP_VISION",
+          "slot_index": 0,
           "links": [
             94
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "CLIPVisionLoader"
       },
       "widgets_values": [
@@ -389,13 +407,15 @@
         {
           "name": "LATENT",
           "type": "LATENT",
+          "slot_index": 0,
           "links": [
             35
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "KSampler"
       },
       "widgets_values": [
@@ -438,13 +458,15 @@
         {
           "name": "IMAGE",
           "type": "IMAGE",
+          "slot_index": 0,
           "links": [
             112
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "VAEDecode"
       },
       "widgets_values": []
@@ -471,20 +493,20 @@
         },
         {
           "name": "audio",
-          "type": "AUDIO",
           "shape": 7,
+          "type": "AUDIO",
           "link": null
         },
         {
           "name": "meta_batch",
-          "type": "VHS_BatchManager",
           "shape": 7,
+          "type": "VHS_BatchManager",
           "link": null
         },
         {
           "name": "vae",
-          "type": "VAE",
           "shape": 7,
+          "type": "VAE",
           "link": null
         }
       ],
@@ -496,6 +518,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "124c913ccdd8a585734ea758c35fa1bab8499c99",
         "Node name for S&R": "VHS_VideoCombine"
       },
       "widgets_values": {
@@ -555,13 +579,15 @@
         {
           "name": "CLIP_VISION_OUTPUT",
           "type": "CLIP_VISION_OUTPUT",
+          "slot_index": 0,
           "links": [
             107
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "CLIPVisionEncode"
       },
       "widgets_values": [
@@ -587,13 +613,15 @@
         {
           "name": "MODEL",
           "type": "MODEL",
+          "slot_index": 0,
           "links": [
             116
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "UNETLoader"
       },
       "widgets_values": [
@@ -609,8 +637,8 @@
         -123.38716125488281
       ],
       "size": [
-        315,
-        106
+        337.4713439941406,
+        130
       ],
       "flags": {},
       "order": 8,
@@ -626,19 +654,22 @@
         {
           "name": "model",
           "type": "MODEL",
+          "slot_index": 0,
           "links": [
             117
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "teacache",
+        "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
         "Node name for S&R": "TeaCache"
       },
       "widgets_values": [
-        "wan2.1_i2v_480p_14B",
-        0.26,
-        3
+        "wan2.1_i2v_480p_14B_ret_mode",
+        0.30000000000000004,
+        0.10000000000000002,
+        1
       ]
     }
   ],
@@ -807,7 +838,8 @@
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true
+    "VHS_KeepIntermediate": true,
+    "frontendVersion": "1.19.9"
   },
   "version": 0.4
 }

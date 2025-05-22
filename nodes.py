@@ -1,14 +1,16 @@
 import math
 import torch
+import comfy.ldm.common_dit
 import comfy.model_management as mm
 
 from torch import Tensor
+from einops import repeat
+from typing import Optional
 from unittest.mock import patch
 
 from comfy.ldm.flux.layers import timestep_embedding, apply_mod
 from comfy.ldm.lightricks.model import precompute_freqs_cis
 from comfy.ldm.lightricks.symmetric_patchifier import latent_to_pixel_coords
-from comfy.ldm.common_dit import rms_norm
 from comfy.ldm.wan.model import sinusoidal_embedding_1d
 
 
@@ -16,6 +18,7 @@ SUPPORTED_MODELS_COEFFICIENTS = {
     "flux": [4.98651651e+02, -2.83781631e+02, 5.58554382e+01, -3.82021401e+00, 2.64230861e-01],
     "ltxv": [2.14700694e+01, -1.28016453e+01, 2.31279151e+00, 7.92487521e-01, 9.69274326e-03],
     "hunyuan_video": [7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02],
+    "hidream_i1_full": [-3.13605009e+04, -7.12425503e+02, 4.91363285e+01, 8.26515490e+00, 1.08053901e-01],
     "wan2.1_t2v_1.3B": [2.39676752e+03, -1.31110545e+03, 2.01331979e+02, -8.29855975e+00, 1.37887774e-01],
     "wan2.1_t2v_14B": [-5784.54975374, 5449.50911966, -1811.16591783, 256.27178429, -13.02252404],
     "wan2.1_i2v_480p_14B": [-3.02331670e+02, 2.23948934e+02, -5.25463970e+01, 5.87348440e+00, -2.01973289e-01],
@@ -48,7 +51,7 @@ def teacache_flux_forward(
         patches_replace = transformer_options.get("patches_replace", {})
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
-        max_skip_steps = transformer_options.get("max_skip_steps")
+        enable_teacache = transformer_options.get("enable_teacache", True)
         
         if img.ndim != 3 or txt.ndim != 3:
             raise ValueError("Input img and txt tensors must have 3 dimensions.")
@@ -64,8 +67,11 @@ def teacache_flux_forward(
         vec = vec + self.vector_in(y[:,:self.params.vec_in_dim])
         txt = self.txt_in(txt)
 
-        ids = torch.cat((txt_ids, img_ids), dim=1)
-        pe = self.pe_embedder(ids)
+        if img_ids is not None:
+            ids = torch.cat((txt_ids, img_ids), dim=1)
+            pe = self.pe_embedder(ids)
+        else:
+            pe = None
 
         blocks_replace = patches_replace.get("dit", {})
 
@@ -78,27 +84,22 @@ def teacache_flux_forward(
         if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
-        elif self.skip_steps == max_skip_steps:
-            should_calc = True
-            self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
         else:
             try:
                 self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
                 if self.accumulated_rel_l1_distance < rel_l1_thresh:
                     should_calc = False
-                    self.skip_steps += 1
                 else:
                     should_calc = True
                     self.accumulated_rel_l1_distance = 0
-                    self.skip_steps = 0
             except:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
-                self.skip_steps = 0
 
         self.previous_modulated_input = modulated_inp
+
+        if not enable_teacache:
+            should_calc = True
 
         if not should_calc:
             img += self.previous_residual.to(img.device)
@@ -194,6 +195,162 @@ def teacache_flux_forward(
         
         return img
 
+def teacache_hidream_forward(
+        self,
+        x: torch.Tensor,
+        t: torch.Tensor,
+        y: Optional[torch.Tensor] = None,
+        context: Optional[torch.Tensor] = None,
+        encoder_hidden_states_llama3=None,
+        image_cond=None,
+        control = None,
+        transformer_options = {},
+    ) -> torch.Tensor:
+        rel_l1_thresh = transformer_options.get("rel_l1_thresh")
+        coefficients = transformer_options.get("coefficients")
+        cond_or_uncond = transformer_options.get("cond_or_uncond")
+        enable_teacache = transformer_options.get("enable_teacache", True)
+
+        bs, c, h, w = x.shape
+        if image_cond is not None:
+            x = torch.cat([x, image_cond], dim=-1)
+        hidden_states = comfy.ldm.common_dit.pad_to_patch_size(x, (self.patch_size, self.patch_size))
+        timesteps = t
+        pooled_embeds = y
+        T5_encoder_hidden_states = context
+
+        img_sizes = None
+
+        # spatial forward
+        batch_size = hidden_states.shape[0]
+        hidden_states_type = hidden_states.dtype
+
+        # 0. time
+        timesteps = self.expand_timesteps(timesteps, batch_size, hidden_states.device)
+        timesteps = self.t_embedder(timesteps, hidden_states_type)
+        p_embedder = self.p_embedder(pooled_embeds)
+        adaln_input = timesteps + p_embedder
+
+        hidden_states, image_tokens_masks, img_sizes = self.patchify(hidden_states, self.max_seq, img_sizes)
+        if image_tokens_masks is None:
+            pH, pW = img_sizes[0]
+            img_ids = torch.zeros(pH, pW, 3, device=hidden_states.device)
+            img_ids[..., 1] = img_ids[..., 1] + torch.arange(pH, device=hidden_states.device)[:, None]
+            img_ids[..., 2] = img_ids[..., 2] + torch.arange(pW, device=hidden_states.device)[None, :]
+            img_ids = repeat(img_ids, "h w c -> b (h w) c", b=batch_size)
+        hidden_states = self.x_embedder(hidden_states)
+
+        # T5_encoder_hidden_states = encoder_hidden_states[0]
+        encoder_hidden_states = encoder_hidden_states_llama3.movedim(1, 0)
+        encoder_hidden_states = [encoder_hidden_states[k] for k in self.llama_layers]
+
+        if self.caption_projection is not None:
+            new_encoder_hidden_states = []
+            for i, enc_hidden_state in enumerate(encoder_hidden_states):
+                enc_hidden_state = self.caption_projection[i](enc_hidden_state)
+                enc_hidden_state = enc_hidden_state.view(batch_size, -1, hidden_states.shape[-1])
+                new_encoder_hidden_states.append(enc_hidden_state)
+            encoder_hidden_states = new_encoder_hidden_states
+            T5_encoder_hidden_states = self.caption_projection[-1](T5_encoder_hidden_states)
+            T5_encoder_hidden_states = T5_encoder_hidden_states.view(batch_size, -1, hidden_states.shape[-1])
+            encoder_hidden_states.append(T5_encoder_hidden_states)
+
+        txt_ids = torch.zeros(
+            batch_size,
+            encoder_hidden_states[-1].shape[1] + encoder_hidden_states[-2].shape[1] + encoder_hidden_states[0].shape[1],
+            3,
+            device=img_ids.device, dtype=img_ids.dtype
+        )
+        ids = torch.cat((img_ids, txt_ids), dim=1)
+        rope = self.pe_embedder(ids)
+
+        # enable teacache
+        modulated_inp = timesteps.to(mm.unet_offload_device())
+        if not hasattr(self, 'teacache_state'):
+            self.teacache_state = {
+                0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None},
+                1: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None}
+            }
+
+        def update_cache_state(cache, modulated_inp):
+            if cache['previous_modulated_input'] is not None:
+                try:
+                    cache['accumulated_rel_l1_distance'] += poly1d(coefficients, ((modulated_inp-cache['previous_modulated_input']).abs().mean() / cache['previous_modulated_input'].abs().mean()))
+                    if cache['accumulated_rel_l1_distance'] < rel_l1_thresh:
+                        cache['should_calc'] = False
+                    else:
+                        cache['should_calc'] = True
+                        cache['accumulated_rel_l1_distance'] = 0
+                except:
+                    cache['should_calc'] = True
+                    cache['accumulated_rel_l1_distance'] = 0
+            cache['previous_modulated_input'] = modulated_inp
+            
+        b = int(len(hidden_states) / len(cond_or_uncond))
+
+        for i, k in enumerate(cond_or_uncond):
+            update_cache_state(self.teacache_state[k], modulated_inp[i*b:(i+1)*b])
+
+        if enable_teacache:
+            should_calc = False
+            for k in cond_or_uncond:
+                should_calc = (should_calc or self.teacache_state[k]['should_calc'])
+        else:
+            should_calc = True
+
+        if not should_calc:
+            for i, k in enumerate(cond_or_uncond):
+                hidden_states[i*b:(i+1)*b] += self.teacache_state[k]['previous_residual'].to(hidden_states.device)
+        else:
+            # 2. Blocks
+            ori_hidden_states = hidden_states.clone()
+            block_id = 0
+            initial_encoder_hidden_states = torch.cat([encoder_hidden_states[-1], encoder_hidden_states[-2]], dim=1)
+            initial_encoder_hidden_states_seq_len = initial_encoder_hidden_states.shape[1]
+            for bid, block in enumerate(self.double_stream_blocks):
+                cur_llama31_encoder_hidden_states = encoder_hidden_states[block_id]
+                cur_encoder_hidden_states = torch.cat([initial_encoder_hidden_states, cur_llama31_encoder_hidden_states], dim=1)
+                hidden_states, initial_encoder_hidden_states = block(
+                    image_tokens = hidden_states,
+                    image_tokens_masks = image_tokens_masks,
+                    text_tokens = cur_encoder_hidden_states,
+                    adaln_input = adaln_input,
+                    rope = rope,
+                )
+                initial_encoder_hidden_states = initial_encoder_hidden_states[:, :initial_encoder_hidden_states_seq_len]
+                block_id += 1
+
+            image_tokens_seq_len = hidden_states.shape[1]
+            hidden_states = torch.cat([hidden_states, initial_encoder_hidden_states], dim=1)
+            hidden_states_seq_len = hidden_states.shape[1]
+            if image_tokens_masks is not None:
+                encoder_attention_mask_ones = torch.ones(
+                    (batch_size, initial_encoder_hidden_states.shape[1] + cur_llama31_encoder_hidden_states.shape[1]),
+                    device=image_tokens_masks.device, dtype=image_tokens_masks.dtype
+                )
+                image_tokens_masks = torch.cat([image_tokens_masks, encoder_attention_mask_ones], dim=1)
+
+            for bid, block in enumerate(self.single_stream_blocks):
+                cur_llama31_encoder_hidden_states = encoder_hidden_states[block_id]
+                hidden_states = torch.cat([hidden_states, cur_llama31_encoder_hidden_states], dim=1)
+                hidden_states = block(
+                    image_tokens=hidden_states,
+                    image_tokens_masks=image_tokens_masks,
+                    text_tokens=None,
+                    adaln_input=adaln_input,
+                    rope=rope,
+                )
+                hidden_states = hidden_states[:, :hidden_states_seq_len]
+                block_id += 1
+
+            hidden_states = hidden_states[:, :image_tokens_seq_len, ...]
+            for i, k in enumerate(cond_or_uncond):
+                self.teacache_state[k]['previous_residual'] = (hidden_states - ori_hidden_states)[i*b:(i+1)*b].to(mm.unet_offload_device())
+
+        output = self.final_layer(hidden_states, adaln_input)
+        output = self.unpatchify(output, img_sizes)
+        return -output[:, :, :h, :w]    
+
 def teacache_hunyuanvideo_forward(
         self,
         img: Tensor,
@@ -205,18 +362,27 @@ def teacache_hunyuanvideo_forward(
         y: Tensor,
         guidance: Tensor = None,
         guiding_frame_index=None,
+        ref_latent=None,
         control=None,
         transformer_options={},
     ) -> Tensor:
         patches_replace = transformer_options.get("patches_replace", {})
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
-        max_skip_steps = transformer_options.get("max_skip_steps")
+        enable_teacache = transformer_options.get("enable_teacache", True)
 
         initial_shape = list(img.shape)
         # running on sequences img
         img = self.img_in(img)
         vec = self.time_in(timestep_embedding(timesteps, 256, time_factor=1.0).to(img.dtype))
+
+        if ref_latent is not None:
+            ref_latent_ids = self.img_ids(ref_latent)
+            ref_latent = self.img_in(ref_latent)
+            img = torch.cat([ref_latent, img], dim=-2)
+            ref_latent_ids[..., 0] = -1
+            ref_latent_ids[..., 2] += (initial_shape[-1] // self.patch_size[-1])
+            img_ids = torch.cat([ref_latent_ids, img_ids], dim=-2)
 
         if guiding_frame_index is not None:
             token_replace_vec = self.time_in(timestep_embedding(guiding_frame_index, 256, time_factor=1.0))
@@ -260,27 +426,22 @@ def teacache_hunyuanvideo_forward(
         if not hasattr(self, 'accumulated_rel_l1_distance'):
             should_calc = True
             self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
-        elif self.skip_steps == max_skip_steps:
-            should_calc = True
-            self.accumulated_rel_l1_distance = 0
-            self.skip_steps = 0
         else:
             try:
                 self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
                 if self.accumulated_rel_l1_distance < rel_l1_thresh:
                     should_calc = False
-                    self.skip_steps += 1
                 else:
                     should_calc = True
                     self.accumulated_rel_l1_distance = 0
-                    self.skip_steps = 0
             except:
                 should_calc = True
                 self.accumulated_rel_l1_distance = 0
-                self.skip_steps = 0
 
         self.previous_modulated_input = modulated_inp
+
+        if not enable_teacache:
+            should_calc = True
 
         if not should_calc:
             img += self.previous_residual.to(img.device)
@@ -330,6 +491,9 @@ def teacache_hunyuanvideo_forward(
             img = img[:, : img_len]
             self.previous_residual = (img - ori_img).to(mm.unet_offload_device())
 
+        if ref_latent is not None:
+            img = img[:, ref_latent.shape[1]:]
+        
         img = self.final_layer(img, vec, modulation_dims=modulation_dims)  # (N, T, patch_size ** 2 * out_channels)
 
         shape = initial_shape[-3:]
@@ -354,8 +518,8 @@ def teacache_ltxvmodel_forward(
         patches_replace = transformer_options.get("patches_replace", {})
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
-        max_skip_steps = transformer_options.get("max_skip_steps")
         cond_or_uncond = transformer_options.get("cond_or_uncond")
+        enable_teacache = transformer_options.get("enable_teacache", True)
 
         orig_shape = list(x.shape)
 
@@ -409,34 +573,27 @@ def teacache_ltxvmodel_forward(
         num_ada_params = self.transformer_blocks[0].scale_shift_table.shape[0]
         ada_values = self.transformer_blocks[0].scale_shift_table[None, None].to(timestep_.device) + timestep_.reshape(batch_size, timestep_.size(1), num_ada_params, -1)
         shift_msa, scale_msa, _, _, _, _ = ada_values.unbind(dim=2)
-        modulated_inp = rms_norm(inp)
+        modulated_inp = comfy.ldm.common_dit.rms_norm(inp)
         modulated_inp = modulated_inp * (1 + scale_msa) + shift_msa
 
         if not hasattr(self, 'teacache_state'):
             self.teacache_state = {
-                0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0},
-                1: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0}
+                0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None},
+                1: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None}
             }
 
         def update_cache_state(cache, modulated_inp):
-            if cache['skip_steps'] == max_skip_steps:
-                cache['should_calc'] = True
-                cache['accumulated_rel_l1_distance'] = 0
-                cache['skip_steps'] = 0
-            elif cache['previous_modulated_input'] is not None:
+            if cache['previous_modulated_input'] is not None:
                 try:
                     cache['accumulated_rel_l1_distance'] += poly1d(coefficients, ((modulated_inp-cache['previous_modulated_input']).abs().mean() / cache['previous_modulated_input'].abs().mean()))
                     if cache['accumulated_rel_l1_distance'] < rel_l1_thresh:
                         cache['should_calc'] = False
-                        cache['skip_steps'] += 1
                     else:
                         cache['should_calc'] = True
                         cache['accumulated_rel_l1_distance'] = 0
-                        cache['skip_steps'] = 0
                 except:
                     cache['should_calc'] = True
                     cache['accumulated_rel_l1_distance'] = 0
-                    cache['skip_steps'] = 0
             cache['previous_modulated_input'] = modulated_inp
 
         b = int(len(x) / len(cond_or_uncond))
@@ -444,9 +601,12 @@ def teacache_ltxvmodel_forward(
         for i, k in enumerate(cond_or_uncond):
             update_cache_state(self.teacache_state[k], modulated_inp[i*b:(i+1)*b])
 
-        should_calc = False
-        for k in cond_or_uncond:
-            should_calc = (should_calc or self.teacache_state[k]['should_calc'])
+        if enable_teacache:
+            should_calc = False
+            for k in cond_or_uncond:
+                should_calc = (should_calc or self.teacache_state[k]['should_calc'])
+        else:
+            should_calc = True
         
         if not should_calc:
             for i, k in enumerate(cond_or_uncond):
@@ -507,7 +667,6 @@ def teacache_wanmodel_forward(
         patches_replace = transformer_options.get("patches_replace", {})
         rel_l1_thresh = transformer_options.get("rel_l1_thresh")
         coefficients = transformer_options.get("coefficients")
-        max_skip_steps = transformer_options.get("max_skip_steps")
         cond_or_uncond = transformer_options.get("cond_or_uncond")
         use_ret_mode = transformer_options.get("use_ret_mode")
         enable_teacache = transformer_options.get("enable_teacache", True)
@@ -525,9 +684,12 @@ def teacache_wanmodel_forward(
         # context
         context = self.text_embedding(context)
 
-        if clip_fea is not None and self.img_emb is not None:
-            context_clip = self.img_emb(clip_fea)  # bs x 257 x dim
-            context = torch.concat([context_clip, context], dim=1)
+        context_img_len = None
+        if clip_fea is not None:
+            if self.img_emb is not None:
+                context_clip = self.img_emb(clip_fea)  # bs x 257 x dim
+                context = torch.concat([context_clip, context], dim=1)
+            context_img_len = clip_fea.shape[-2]
 
         blocks_replace = patches_replace.get("dit", {})
 
@@ -535,29 +697,22 @@ def teacache_wanmodel_forward(
         modulated_inp = e0.to(mm.unet_offload_device()) if use_ret_mode else e.to(mm.unet_offload_device())
         if not hasattr(self, 'teacache_state'):
             self.teacache_state = {
-                0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0},
-                1: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None, 'skip_steps': 0}
+                0: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None},
+                1: {'should_calc': True, 'accumulated_rel_l1_distance': 0, 'previous_modulated_input': None, 'previous_residual': None}
             }
 
         def update_cache_state(cache, modulated_inp):
-            if cache['skip_steps'] == max_skip_steps:
-                cache['should_calc'] = True
-                cache['accumulated_rel_l1_distance'] = 0
-                cache['skip_steps'] = 0
-            elif cache['previous_modulated_input'] is not None:
+            if cache['previous_modulated_input'] is not None:
                 try:
                     cache['accumulated_rel_l1_distance'] += poly1d(coefficients, ((modulated_inp-cache['previous_modulated_input']).abs().mean() / cache['previous_modulated_input'].abs().mean()))
                     if cache['accumulated_rel_l1_distance'] < rel_l1_thresh:
                         cache['should_calc'] = False
-                        cache['skip_steps'] += 1
                     else:
                         cache['should_calc'] = True
                         cache['accumulated_rel_l1_distance'] = 0
-                        cache['skip_steps'] = 0
                 except:
                     cache['should_calc'] = True
                     cache['accumulated_rel_l1_distance'] = 0
-                    cache['skip_steps'] = 0
             cache['previous_modulated_input'] = modulated_inp
             
         b = int(len(x) / len(cond_or_uncond))
@@ -581,12 +736,12 @@ def teacache_wanmodel_forward(
                 if ("double_block", i) in blocks_replace:
                     def block_wrap(args):
                         out = {}
-                        out["img"] = block(args["img"], context=args["txt"], e=args["vec"], freqs=args["pe"])
+                        out["img"] = block(args["img"], context=args["txt"], e=args["vec"], freqs=args["pe"], context_img_len=context_img_len)
                         return out
                     out = blocks_replace[("double_block", i)]({"img": x, "txt": context, "vec": e0, "pe": freqs}, {"original_block": block_wrap, "transformer_options": transformer_options})
                     x = out["img"]
                 else:
-                    x = block(x, e=e0, freqs=freqs, context=context)
+                    x = block(x, e=e0, freqs=freqs, context=context, context_img_len=context_img_len)
             for i, k in enumerate(cond_or_uncond):
                 self.teacache_state[k]['previous_residual'] = (x - ori_x)[i*b:(i+1)*b].to(mm.unet_offload_device())
 
@@ -603,9 +758,10 @@ class TeaCache:
         return {
             "required": {
                 "model": ("MODEL", {"tooltip": "The diffusion model the TeaCache will be applied to."}),
-                "model_type": (["flux", "ltxv", "hunyuan_video", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B", "wan2.1_t2v_1.3B_ret_mode", "wan2.1_t2v_14B_ret_mode", "wan2.1_i2v_480p_14B_ret_mode", "wan2.1_i2v_720p_14B_ret_mode"], {"default": "flux", "tooltip": "Supported diffusion model."}),
+                "model_type": (["flux", "ltxv", "hunyuan_video", "hidream_i1_full", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B", "wan2.1_t2v_1.3B_ret_mode", "wan2.1_t2v_14B_ret_mode", "wan2.1_i2v_480p_14B_ret_mode", "wan2.1_i2v_720p_14B_ret_mode"], {"default": "flux", "tooltip": "Supported diffusion model."}),
                 "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
-                "max_skip_steps": ([1, 2, 3], {"default": 3, "tooltip": "Max continuous skip steps."})
+                "start_percent": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "The start percentage of the steps that will apply TeaCache."}),
+                "end_percent": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "The end percentage of the steps that will apply TeaCache."})
             }
         }
     
@@ -615,7 +771,7 @@ class TeaCache:
     CATEGORY = "TeaCache"
     TITLE = "TeaCache"
     
-    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float, max_skip_steps: int):
+    def apply_teacache(self, model, model_type: str, rel_l1_thresh: float, start_percent: float, end_percent: float):
         if rel_l1_thresh == 0:
             return (model,)
 
@@ -623,7 +779,6 @@ class TeaCache:
         if 'transformer_options' not in new_model.model_options:
             new_model.model_options['transformer_options'] = {}
         new_model.model_options["transformer_options"]["rel_l1_thresh"] = rel_l1_thresh
-        new_model.model_options["transformer_options"]["max_skip_steps"] = max_skip_steps
         new_model.model_options["transformer_options"]["coefficients"] = SUPPORTED_MODELS_COEFFICIENTS[model_type]
         new_model.model_options["transformer_options"]["use_ret_mode"] = "ret_mode" in model_type
         diffusion_model = new_model.get_model_object("diffusion_model")
@@ -633,6 +788,12 @@ class TeaCache:
             context = patch.multiple(
                 diffusion_model,
                 forward_orig=teacache_flux_forward.__get__(diffusion_model, diffusion_model.__class__)
+            )
+        elif "hidream_i1" in model_type:
+            is_cfg = True
+            context = patch.multiple(
+                diffusion_model,
+                forward=teacache_hidream_forward.__get__(diffusion_model, diffusion_model.__class__)
             )
         elif "ltxv" in model_type:
             is_cfg = True
@@ -662,7 +823,6 @@ class TeaCache:
             cond_or_uncond = kwargs["cond_or_uncond"]
             # referenced from https://github.com/kijai/ComfyUI-KJNodes/blob/d126b62cebee81ea14ec06ea7cd7526999cb0554/nodes/model_optimization_nodes.py#L868
             sigmas = c["transformer_options"]["sample_sigmas"]
-            use_ret_mode = c["transformer_options"]["use_ret_mode"]
             matched_step_index = (sigmas == timestep[0]).nonzero()
             if len(matched_step_index) > 0:
                 current_step_index = matched_step_index.item()
@@ -684,8 +844,9 @@ class TeaCache:
                         delattr(diffusion_model, 'accumulated_rel_l1_distance')
             
             current_percent = current_step_index / (len(sigmas) - 1)
-            c["transformer_options"]["current_percent"] = current_percent
-            if use_ret_mode and current_percent < 0.1:
+            if start_percent <= current_percent <= end_percent:
+                c["transformer_options"]["enable_teacache"] = True
+            else:
                 c["transformer_options"]["enable_teacache"] = False
                 
             with context:

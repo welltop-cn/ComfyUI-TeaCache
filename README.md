@@ -6,13 +6,18 @@ Timestep Embedding Aware Cache ([TeaCache](https://github.com/ali-vilab/TeaCache
 TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI native nodes. ComfyUI-TeaCache is easy to use, simply connect the TeaCache node with the ComfyUI native nodes for seamless usage.
 
 ## Updates
+- May 22 2025: ComfyUI-TeaCache supports HiDream-I1-Full and redesigns TeaCache options:
+    - It can achieve a 1.5x lossless speedup and a 2x speedup without much visual quality degradation.
+    - Support HiDream-I1-Full LoRA!
+    - Add start_percent, end_percent options and remove max_skip_steps option according to the feedback from [1](https://github.com/welltop-cn/ComfyUI-TeaCache/issues/112) and [2](https://github.com/welltop-cn/ComfyUI-TeaCache/issues/84).
+    - Fix compatibility issues to match the latest official ComfyUI version.
 - Mar 26 2025: ComfyUI-TeaCache supports retention mode for Wan2.1 models and HunyuanVideo I2V v2 model:
     - Retention mode for Wan2.1 models can bring faster generation and better generation quality.
     - Fixes a bug about HunyuanVideo I2V v2 model.
 - Mar 10 2025: ComfyUI-TeaCache adds max_skip_steps option and has made some changes for ease of use:
     - Add max_skip_steps option to enjoy a good trade-off between quality and speed for Wan2.1 models. The best settings are shown in the usage section.
     - Merge TeaCache For Img Gen and TeaCache For Vid Gen nodes into a single TeaCache node.
-    - Update TeaCache for HunyuanVideo and LTX-Video to match the offical ComfyUI update.
+    - Fix compatibility issues about HunyuanVideo and LTX-Video to match the latest official ComfyUI version.
 - Mar 6 2025: ComfyUI-TeaCache supports Wan2.1:
     - It can achieve a 1.5x lossless speedup and a 2x speedup without much visual quality degradation.
     - Support Text to Video and Image to Video!
@@ -48,31 +53,32 @@ Installation via ComfyUI-Manager is preferred. Simply search for ComfyUI-TeaCach
 
 ## Usage
 ### TeaCache
-To use TeaCache node, simply add `TeaCache` node to your workflow after `Load Diffusion Model` node or `Load LoRA` node (if you need LoRA). Generally, TeaCache can achieve a speedup of 1.5x to 3x with acceptable visual quality loss. The following table gives the recommended rel_l1_thresh and max_skip_steps ​for different models:
+To use TeaCache node, simply add `TeaCache` node to your workflow after `Load Diffusion Model` node or `Load LoRA` node (if you need LoRA). Generally, TeaCache can achieve a speedup of 1.5x to 3x with acceptable visual quality loss. The following table gives the recommended rel_l1_thresh, start_percent and end_percent ​for different models:
 
 <div align="center">
 
-| Models                       |   rel_l1_thresh   |   max_skip_steps  |      speedup      |
-|:----------------------------:|:-----------------:|:-----------------:|:-----------------:|
-| FLUX                         |        0.4        |         3         |        ~2x        |
-| PuLID-FLUX                   |        0.4        |         3         |        ~1.7x      |
-| HunyuanVideo                 |        0.15       |         3         |        ~1.9x      |
-| LTX-Video                    |        0.06       |         3         |        ~1.7x      |
-| CogVideoX                    |        0.3        |         3         |        ~2x        |
-| Wan2.1-T2V-1.3B              |        0.08       |         3         |        ~1.6x      |
-| Wan2.1-T2V-14B               |        0.2        |         3         |        ~1.8x      |
-| Wan2.1-I2V-480P-14B          |        0.26       |         3         |        ~1.9x      |
-| Wan2.1-I2V-720P-14B          |        0.25       |         3         |        ~1.6x      |
-| Wan2.1-T2V-1.3B-ret-mode     |        0.15       |         3         |        ~2.2x      |
-| Wan2.1-T2V-14B-ret-mode      |        0.2        |         3         |        ~2.1x      |
-| Wan2.1-I2V-480P-14B-ret-mode |        0.3        |         3         |        ~2.3x      |
-| Wan2.1-I2V-720P-14B-ret-mode |        0.3        |         3         |        ~2.0x      |
+| Models                       |   rel_l1_thresh   |    start_percent  |     end_percent   |      speedup      |
+|:----------------------------:|:-----------------:|:-----------------:|:-----------------:|:-----------------:|
+| FLUX                         |        0.4        |         0         |         1         |        ~2x        |
+| PuLID-FLUX                   |        0.4        |         0         |         1         |        ~1.7x      |
+| HiDream-I1-Full              |        0.35       |         0.1       |         1         |        ~2x        |
+| HunyuanVideo                 |        0.15       |         0         |         1         |        ~1.9x      |
+| LTX-Video                    |        0.06       |         0         |         1         |        ~1.7x      |
+| CogVideoX                    |        0.3        |         0         |         1         |        ~2x        |
+| Wan2.1-T2V-1.3B              |        0.08       |         0         |         1         |        ~1.6x      |
+| Wan2.1-T2V-14B               |        0.2        |         0         |         1         |        ~1.8x      |
+| Wan2.1-I2V-480P-14B          |        0.26       |         0         |         1         |        ~1.9x      |
+| Wan2.1-I2V-720P-14B          |        0.25       |         0         |         1         |        ~1.6x      |
+| Wan2.1-T2V-1.3B-ret-mode     |        0.15       |         0.1       |         1         |        ~2.2x      |
+| Wan2.1-T2V-14B-ret-mode      |        0.2        |         0.1       |         1         |        ~2.1x      |
+| Wan2.1-I2V-480P-14B-ret-mode |        0.3        |         0.1       |         1         |        ~2.3x      |
+| Wan2.1-I2V-720P-14B-ret-mode |        0.3        |         0.1       |         1         |        ~2x        |
 
 </div>
 
-If the video after applying TeaCache is of low quality, such as a lower range of motion or the still frames, please reduce rel_l1_thresh or max_skip_steps.
+If the image/video after applying TeaCache is of low quality, please reduce rel_l1_thresh. I really don't recommend adjusting start_percent and end_percent unless you are an experienced engineer or creator.
 
-The demo workflows ([flux](./examples/flux.json), [pulid_flux](./examples/pulid_flux.json), [hunyuanvideo](./examples/hunyuanvideo.json), [ltx_video](./examples/ltx_video.json), [cogvideox](./examples/cogvideox.json), [wan2.1_t2v](./examples/wan2.1_t2v.json) and [wan2.1_i2v](./examples/wan2.1_i2v.json)) are placed in examples folder.
+The demo workflows ([flux](./examples/flux.json), [pulid_flux](./examples/pulid_flux.json), [hidream_i1_full](./examples/hidream_i1_full.json), [hunyuanvideo](./examples/hunyuanvideo.json), [ltx_video](./examples/ltx_video.json), [cogvideox](./examples/cogvideox.json), [wan2.1_t2v](./examples/wan2.1_t2v.json) and [wan2.1_i2v](./examples/wan2.1_i2v.json)) are placed in examples folder.
 
 ### Compile Model
 To use Compile Model node, simply add `Compile Model` node to your workflow after `Load Diffusion Model` node or `TeaCache` node. Compile Model uses `torch.compile` to enhance the model performance by compiling model into more efficient intermediate representations (IRs). This compilation process leverages backend compilers to generate optimized code, which can significantly speed up inference. The compilation may take long time when you run the workflow at first, but once it is compiled, inference is extremely fast. The usage is shown below:
@@ -84,6 +90,9 @@ To use Compile Model node, simply add `Compile Model` node to your workflow afte
 
 - <p><strong>PuLID-FLUX</strong></p>
 ![](./assets/compare_pulid_flux.png)
+
+- <p><strong>HiDream-I1-Full</strong></p>
+![](./assets/compare_hidream_i1_full.png)
 
 - <p><strong>HunyuanVideo</strong></p>
 https://github.com/user-attachments/assets/b3aca64d-c2ae-440c-a362-f3a7b6c633e0

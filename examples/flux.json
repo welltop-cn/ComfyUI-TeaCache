@@ -1,4 +1,6 @@
 {
+  "id": "7922f5d2-8999-4657-9fe6-54eec2517f48",
+  "revision": 0,
   "last_node_id": 41,
   "last_link_id": 125,
   "nodes": [
@@ -11,7 +13,7 @@
       ],
       "size": [
         315,
-        122
+        130
       ],
       "flags": {},
       "order": 0,
@@ -21,14 +23,15 @@
         {
           "name": "CLIP",
           "type": "CLIP",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             10
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "DualCLIPLoader"
       },
       "widgets_values": [
@@ -63,14 +66,15 @@
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             42
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "FluxGuidance"
       },
       "widgets_values": [
@@ -123,14 +127,15 @@
         {
           "name": "VAE",
           "type": "VAE",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             12
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "VAELoader"
       },
       "widgets_values": [
@@ -184,11 +189,11 @@
           "widget": {
             "name": "width"
           },
+          "slot_index": 0,
           "links": [
             112,
             115
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "title": "width",
@@ -224,11 +229,11 @@
           "widget": {
             "name": "height"
           },
+          "slot_index": 0,
           "links": [
             113,
             114
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "title": "height",
@@ -260,49 +265,39 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 125,
-          "slot_index": 0
+          "link": 125
         },
         {
           "name": "width",
           "type": "INT",
-          "pos": [
-            10,
-            84
-          ],
           "widget": {
             "name": "width"
           },
-          "link": 115,
-          "slot_index": 1
+          "link": 115
         },
         {
           "name": "height",
           "type": "INT",
-          "pos": [
-            10,
-            108
-          ],
           "widget": {
             "name": "height"
           },
-          "link": 114,
-          "slot_index": 2
+          "link": 114
         }
       ],
       "outputs": [
         {
           "name": "MODEL",
           "type": "MODEL",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             54,
             55
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "ModelSamplingFlux"
       },
       "widgets_values": [
@@ -330,28 +325,27 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 54,
-          "slot_index": 0
+          "link": 54
         },
         {
           "name": "conditioning",
           "type": "CONDITIONING",
-          "link": 42,
-          "slot_index": 1
+          "link": 42
         }
       ],
       "outputs": [
         {
           "name": "GUIDER",
           "type": "GUIDER",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             30
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "BasicGuider"
       },
       "widgets_values": []
@@ -374,52 +368,47 @@
         {
           "name": "noise",
           "type": "NOISE",
-          "link": 37,
-          "slot_index": 0
+          "link": 37
         },
         {
           "name": "guider",
           "type": "GUIDER",
-          "link": 30,
-          "slot_index": 1
+          "link": 30
         },
         {
           "name": "sampler",
           "type": "SAMPLER",
-          "link": 19,
-          "slot_index": 2
+          "link": 19
         },
         {
           "name": "sigmas",
           "type": "SIGMAS",
-          "link": 20,
-          "slot_index": 3
+          "link": 20
         },
         {
           "name": "latent_image",
           "type": "LATENT",
-          "link": 116,
-          "slot_index": 4
+          "link": 116
         }
       ],
       "outputs": [
         {
           "name": "output",
           "type": "LATENT",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             24
-          ],
-          "slot_index": 0
+          ]
         },
         {
           "name": "denoised_output",
           "type": "LATENT",
-          "shape": 3,
           "links": null
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "SamplerCustomAdvanced"
       },
       "widgets_values": []
@@ -443,13 +432,14 @@
         {
           "name": "SAMPLER",
           "type": "SAMPLER",
-          "shape": 3,
           "links": [
             19
           ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "KSamplerSelect"
       },
       "widgets_values": [
@@ -474,10 +464,6 @@
         {
           "name": "width",
           "type": "INT",
-          "pos": [
-            10,
-            36
-          ],
           "widget": {
             "name": "width"
           },
@@ -486,10 +472,6 @@
         {
           "name": "height",
           "type": "INT",
-          "pos": [
-            10,
-            60
-          ],
           "widget": {
             "name": "height"
           },
@@ -500,14 +482,15 @@
         {
           "name": "LATENT",
           "type": "LATENT",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             116
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "EmptySD3LatentImage"
       },
       "widgets_values": [
@@ -541,14 +524,16 @@
         {
           "name": "CONDITIONING",
           "type": "CONDITIONING",
+          "slot_index": 0,
           "links": [
             41
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "title": "CLIP Text Encode (Positive Prompt)",
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
@@ -588,13 +573,15 @@
         {
           "name": "IMAGE",
           "type": "IMAGE",
+          "slot_index": 0,
           "links": [
             9
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "VAEDecode"
       },
       "widgets_values": []
@@ -617,21 +604,21 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 55,
-          "slot_index": 0
+          "link": 55
         }
       ],
       "outputs": [
         {
           "name": "SIGMAS",
           "type": "SIGMAS",
-          "shape": 3,
           "links": [
             20
           ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "BasicScheduler"
       },
       "widgets_values": [
@@ -663,6 +650,8 @@
       ],
       "outputs": [],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "SaveImage"
       },
       "widgets_values": [
@@ -688,14 +677,15 @@
         {
           "name": "MODEL",
           "type": "MODEL",
-          "shape": 3,
+          "slot_index": 0,
           "links": [
             124
-          ],
-          "slot_index": 0
+          ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "UNETLoader"
       },
       "widgets_values": [
@@ -704,46 +694,6 @@
       ],
       "color": "#223",
       "bgcolor": "#335"
-    },
-    {
-      "id": 41,
-      "type": "TeaCache",
-      "pos": [
-        64.00762939453125,
-        1143.05322265625
-      ],
-      "size": [
-        315,
-        106
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 124
-        }
-      ],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "links": [
-            125
-          ],
-          "slot_index": 0
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "TeaCache"
-      },
-      "widgets_values": [
-        "flux",
-        0.4,
-        3
-      ]
     },
     {
       "id": 25,
@@ -764,13 +714,14 @@
         {
           "name": "NOISE",
           "type": "NOISE",
-          "shape": 3,
           "links": [
             37
           ]
         }
       ],
       "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
         "Node name for S&R": "RandomNoise"
       },
       "widgets_values": [
@@ -779,6 +730,49 @@
       ],
       "color": "#2a363b",
       "bgcolor": "#3f5159"
+    },
+    {
+      "id": 41,
+      "type": "TeaCache",
+      "pos": [
+        64.00762939453125,
+        1143.05322265625
+      ],
+      "size": [
+        315,
+        130
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 124
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            125
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "teacache",
+        "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
+        "Node name for S&R": "TeaCache"
+      },
+      "widgets_values": [
+        "flux",
+        0.4,
+        0,
+        1
+      ]
     }
   ],
   "links": [
@@ -939,10 +933,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6830134553650713,
+      "scale": 0.6830134553650714,
       "offset": [
-        585.0708074418511,
-        -310.9613966916353
+        573.8598871415576,
+        -251.04499921086108
       ]
     },
     "groupNodes": {},
@@ -954,7 +948,8 @@
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true
+    "VHS_KeepIntermediate": true,
+    "frontendVersion": "1.19.9"
   },
   "version": 0.4
 }
