@@ -844,6 +844,7 @@ class TeaCache:
                         delattr(diffusion_model, 'accumulated_rel_l1_distance')
             
             current_percent = current_step_index / (len(sigmas) - 1)
+            c["transformer_options"]["current_percent"] = current_percent
             if start_percent <= current_percent <= end_percent:
                 c["transformer_options"]["enable_teacache"] = True
             else:
