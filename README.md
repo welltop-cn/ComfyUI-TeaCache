@@ -47,9 +47,19 @@ TeaCache has now been integrated into ComfyUI and is compatible with the ComfyUI
 ## Installation
 Installation via ComfyUI-Manager is preferred. Simply search for ComfyUI-TeaCache in the list of nodes and click install.
 ### Manual installation
-1. Go to comfyUI custom_nodes folder, `ComfyUI/custom_nodes/`
-2. git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
-3. pip install -r requirements.txt
+1. Go to comfyUI custom_nodes directory inside ComfyUI
+```bash
+cd ComfyUI/custom_nodes/
+```
+2. Clone the TeaCache repo and move into it
+```bash
+git clone https://github.com/welltop-cn/ComfyUI-TeaCache.git
+cd ComfyUI-TeaCache
+```
+3. If you're using a virtual environment, activate it. Then install the dependencies
+```bash
+pip install -r requirements.txt
+```
 
 ## Usage
 ### TeaCache
@@ -79,6 +89,8 @@ To use TeaCache node, simply add `TeaCache` node to your workflow after `Load Di
 If the image/video after applying TeaCache is of low quality, please reduce rel_l1_thresh. I really don't recommend adjusting start_percent and end_percent unless you are an experienced engineer or creator.
 
 The demo workflows ([flux](./examples/flux.json), [pulid_flux](./examples/pulid_flux.json), [hidream_i1_full](./examples/hidream_i1_full.json), [hunyuanvideo](./examples/hunyuanvideo.json), [ltx_video](./examples/ltx_video.json), [cogvideox](./examples/cogvideox.json), [wan2.1_t2v](./examples/wan2.1_t2v.json) and [wan2.1_i2v](./examples/wan2.1_i2v.json)) are placed in examples folder.
+
+
 
 ### Compile Model
 To use Compile Model node, simply add `Compile Model` node to your workflow after `Load Diffusion Model` node or `TeaCache` node. Compile Model uses `torch.compile` to enhance the model performance by compiling model into more efficient intermediate representations (IRs). This compilation process leverages backend compilers to generate optimized code, which can significantly speed up inference. The compilation may take long time when you run the workflow at first, but once it is compiled, inference is extremely fast. The usage is shown below:
