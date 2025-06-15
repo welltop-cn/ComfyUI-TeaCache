@@ -84,65 +84,6 @@
       "bgcolor": "#355"
     },
     {
-      "id": 37,
-      "type": "Note",
-      "pos": [
-        480,
-        1344
-      ],
-      "size": [
-        314.99755859375,
-        117.98363494873047
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "properties": {
-        "text": ""
-      },
-      "widgets_values": [
-        "The reference sampling implementation auto adjusts the shift value based on the resolution, if you don't want this you can just bypass (CTRL-B) this ModelSamplingFlux node.\n"
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 10,
-      "type": "VAELoader",
-      "pos": [
-        48,
-        432
-      ],
-      "size": [
-        311.81634521484375,
-        60.429901123046875
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "VAE",
-          "type": "VAE",
-          "slot_index": 0,
-          "links": [
-            12
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "VAELoader"
-      },
-      "widgets_values": [
-        "ae.safetensors"
-      ]
-    },
-    {
       "id": 28,
       "type": "Note",
       "pos": [
@@ -154,7 +95,7 @@
         288
       ],
       "flags": {},
-      "order": 3,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -179,7 +120,7 @@
         82
       ],
       "flags": {},
-      "order": 4,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -219,7 +160,7 @@
         82
       ],
       "flags": {},
-      "order": 5,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -246,66 +187,6 @@
       ],
       "color": "#323",
       "bgcolor": "#535"
-    },
-    {
-      "id": 30,
-      "type": "ModelSamplingFlux",
-      "pos": [
-        480,
-        1152
-      ],
-      "size": [
-        315,
-        170
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 125
-        },
-        {
-          "name": "width",
-          "type": "INT",
-          "widget": {
-            "name": "width"
-          },
-          "link": 115
-        },
-        {
-          "name": "height",
-          "type": "INT",
-          "widget": {
-            "name": "height"
-          },
-          "link": 114
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            54,
-            55
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "ModelSamplingFlux"
-      },
-      "widgets_values": [
-        1.15,
-        0.5,
-        1024,
-        1024
-      ]
     },
     {
       "id": 22,
@@ -425,7 +306,7 @@
         58
       ],
       "flags": {},
-      "order": 6,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -537,8 +418,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "cute anime girl with massive fluffy fennec ears and a big fluffy tail blonde messy long hair blue eyes wearing a maid outfit with a long black gold leaf pattern dress and a white apron mouth open holding a fancy black forest cake with candles on top in the kitchen of an old dark Victorian mansion lit by candlelight with a bright window to the foggy forest and very expensive stuff everywhere",
-        true
+        "cute anime girl with massive fluffy fennec ears and a big fluffy tail blonde messy long hair blue eyes wearing a maid outfit with a long black gold leaf pattern dress and a white apron mouth open holding a fancy black forest cake with candles on top in the kitchen of an old dark Victorian mansion lit by candlelight with a bright window to the foggy forest and very expensive stuff everywhere"
       ],
       "color": "#232",
       "bgcolor": "#353"
@@ -670,7 +550,7 @@
         82
       ],
       "flags": {},
-      "order": 7,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -694,6 +574,125 @@
       ],
       "color": "#223",
       "bgcolor": "#335"
+    },
+    {
+      "id": 37,
+      "type": "Note",
+      "pos": [
+        480,
+        1375.0811767578125
+      ],
+      "size": [
+        314.99755859375,
+        117.98363494873047
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "text": ""
+      },
+      "widgets_values": [
+        "The reference sampling implementation auto adjusts the shift value based on the resolution, if you don't want this you can just bypass (CTRL-B) this ModelSamplingFlux node.\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 30,
+      "type": "ModelSamplingFlux",
+      "pos": [
+        480,
+        1152
+      ],
+      "size": [
+        315,
+        170
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 125
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 115
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 114
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            54,
+            55
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "ModelSamplingFlux"
+      },
+      "widgets_values": [
+        1.15,
+        0.5,
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": 10,
+      "type": "VAELoader",
+      "pos": [
+        51.99299240112305,
+        469.26788330078125
+      ],
+      "size": [
+        311.81634521484375,
+        60.429901123046875
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 0,
+          "links": [
+            12
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "ae.safetensors"
+      ]
     },
     {
       "id": 25,
@@ -735,12 +734,12 @@
       "id": 41,
       "type": "TeaCache",
       "pos": [
-        64.00762939453125,
-        1143.05322265625
+        66.22770690917969,
+        1151.1937255859375
       ],
       "size": [
         315,
-        130
+        154
       ],
       "flags": {},
       "order": 11,
@@ -765,13 +764,15 @@
       "properties": {
         "cnr_id": "teacache",
         "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
-        "Node name for S&R": "TeaCache"
+        "Node name for S&R": "TeaCache",
+        "aux_id": "welltop-cn/ComfyUI-TeaCache"
       },
       "widgets_values": [
         "flux",
         0.4,
         0,
-        1
+        1,
+        "cuda"
       ]
     }
   ],
@@ -935,10 +936,11 @@
     "ds": {
       "scale": 0.6830134553650714,
       "offset": [
-        573.8598871415576,
-        -251.04499921086108
+        449.999999,
+        -217.0498210000005
       ]
     },
+    "frontendVersion": "1.18.9",
     "groupNodes": {},
     "node_versions": {
       "comfy-core": "0.3.26",
@@ -948,8 +950,7 @@
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true,
-    "frontendVersion": "1.19.9"
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

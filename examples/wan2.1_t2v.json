@@ -76,11 +76,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
-        [
-          false,
-          true
-        ]
+        "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走"
       ],
       "color": "#322",
       "bgcolor": "#533"
@@ -197,11 +193,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "a fox moving quickly in a beautiful winter scenery nature trees mountains daytime tracking camera",
-        [
-          false,
-          true
-        ]
+        "a fox moving quickly in a beautiful winter scenery nature trees mountains daytime tracking camera"
       ],
       "color": "#232",
       "bgcolor": "#353"
@@ -258,7 +250,7 @@
       ],
       "size": [
         292.3946838378906,
-        334
+        505.1507873535156
       ],
       "flags": {},
       "order": 10,
@@ -315,17 +307,137 @@
           "hidden": false,
           "paused": false,
           "params": {
-            "filename": "teacache_00084.mp4",
+            "filename": "teacache_00047.mp4",
             "subfolder": "",
             "type": "output",
             "format": "video/h264-mp4",
             "frame_rate": 16,
-            "workflow": "teacache_00084.png",
-            "fullpath": "/home/yuyunjie/code/ComfyUI/output/teacache_00084.mp4"
+            "workflow": "teacache_00047.png",
+            "fullpath": "/mnt/aiface/yyj/code/ComfyUI/output/teacache_00047.mp4"
           },
           "muted": false
         }
       }
+    },
+    {
+      "id": 37,
+      "type": "UNETLoader",
+      "pos": [
+        20,
+        40
+      ],
+      "size": [
+        346.7470703125,
+        82
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            100
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "wan2.1_t2v_1.3B_fp16.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 48,
+      "type": "ModelSamplingSD3",
+      "pos": [
+        438.8999938964844,
+        73.09999084472656
+      ],
+      "size": [
+        210,
+        58
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 101
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            95
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "ModelSamplingSD3"
+      },
+      "widgets_values": [
+        8
+      ]
+    },
+    {
+      "id": 52,
+      "type": "TeaCache",
+      "pos": [
+        386.0345458984375,
+        -121.91252136230469
+      ],
+      "size": [
+        315,
+        154
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 100
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            101
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "welltop-cn/ComfyUI-TeaCache",
+        "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
+        "Node name for S&R": "TeaCache",
+        "cnr_id": "teacache"
+      },
+      "widgets_values": [
+        "wan2.1_t2v_1.3B_ret_mode",
+        0.15000000000000002,
+        0.10000000000000002,
+        1,
+        "cuda"
+      ]
     },
     {
       "id": 3,
@@ -385,124 +497,6 @@
         6,
         "uni_pc",
         "simple",
-        1
-      ]
-    },
-    {
-      "id": 48,
-      "type": "ModelSamplingSD3",
-      "pos": [
-        440,
-        50
-      ],
-      "size": [
-        210,
-        58
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 101
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            95
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "ModelSamplingSD3"
-      },
-      "widgets_values": [
-        8
-      ]
-    },
-    {
-      "id": 37,
-      "type": "UNETLoader",
-      "pos": [
-        20,
-        40
-      ],
-      "size": [
-        346.7470703125,
-        82
-      ],
-      "flags": {},
-      "order": 3,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            100
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "UNETLoader"
-      },
-      "widgets_values": [
-        "wan2.1_t2v_1.3B_fp16.safetensors",
-        "default"
-      ]
-    },
-    {
-      "id": 52,
-      "type": "TeaCache",
-      "pos": [
-        386.0345458984375,
-        -121.91252136230469
-      ],
-      "size": [
-        315,
-        130
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 100
-        }
-      ],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            101
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "teacache",
-        "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
-        "Node name for S&R": "TeaCache"
-      },
-      "widgets_values": [
-        "wan2.1_t2v_1.3B_ret_mode",
-        0.15000000000000002,
-        0.10000000000000002,
         1
       ]
     }
@@ -607,6 +601,7 @@
         297.73529230242883
       ]
     },
+    "frontendVersion": "1.18.9",
     "node_versions": {
       "comfy-core": "0.3.26",
       "ComfyUI-VideoHelperSuite": "124c913ccdd8a585734ea758c35fa1bab8499c99",
@@ -616,8 +611,7 @@
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true,
-    "frontendVersion": "1.19.9"
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

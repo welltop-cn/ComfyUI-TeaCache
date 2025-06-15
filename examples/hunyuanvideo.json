@@ -325,8 +325,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "anime style anime girl with massive fennec ears and one big fluffy tail, she has blonde hair long hair blue eyes wearing a pink sweater and a long blue skirt walking in a beautiful outdoor scenery with snow mountains in the background",
-        true
+        "anime style anime girl with massive fennec ears and one big fluffy tail, she has blonde hair long hair blue eyes wearing a pink sweater and a long blue skirt walking in a beautiful outdoor scenery with snow mountains in the background"
       ],
       "color": "#232",
       "bgcolor": "#353"
@@ -715,7 +714,7 @@
       ],
       "size": [
         315,
-        130
+        154
       ],
       "flags": {},
       "order": 9,
@@ -739,15 +738,17 @@
         }
       ],
       "properties": {
-        "cnr_id": "teacache",
+        "aux_id": "welltop-cn/ComfyUI-TeaCache",
         "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
-        "Node name for S&R": "TeaCache"
+        "Node name for S&R": "TeaCache",
+        "cnr_id": "teacache"
       },
       "widgets_values": [
         "hunyuan_video",
         0.15,
         0,
-        1
+        1,
+        "cuda"
       ]
     }
   ],
@@ -899,6 +900,7 @@
         139.84374290591396
       ]
     },
+    "frontendVersion": "1.18.9",
     "groupNodes": {},
     "workspace_info": {
       "id": "hSBfPb8KVVUoyCyWT3oHM"
@@ -912,8 +914,7 @@
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true,
-    "frontendVersion": "1.19.9"
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

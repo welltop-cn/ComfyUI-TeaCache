@@ -87,8 +87,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "A woman with long brown hair and light skin smiles at another woman with long blonde hair. The woman with brown hair wears a black jacket and has a small, barely noticeable mole on her right cheek. The camera angle is a close-up, focused on the woman with brown hair's face. The lighting is warm and natural, likely from the setting sun, casting a soft glow on the scene. The scene appears to be real-life footage.",
-        true
+        "A woman with long brown hair and light skin smiles at another woman with long blonde hair. The woman with brown hair wears a black jacket and has a small, barely noticeable mole on her right cheek. The camera angle is a close-up, focused on the woman with brown hair's face. The lighting is warm and natural, likely from the setting sun, casting a soft glow on the scene. The scene appears to be real-life footage."
       ],
       "color": "#232",
       "bgcolor": "#353"
@@ -131,8 +130,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "low quality, worst quality, deformed, distorted, disfigured, motion smear, motion artifacts, fused fingers, bad anatomy, weird hand, ugly",
-        true
+        "low quality, worst quality, deformed, distorted, disfigured, motion smear, motion artifacts, fused fingers, bad anatomy, weird hand, ugly"
       ],
       "color": "#322",
       "bgcolor": "#533"
@@ -229,59 +227,6 @@
         768,
         97,
         1
-      ]
-    },
-    {
-      "id": 69,
-      "type": "LTXVConditioning",
-      "pos": [
-        920,
-        60
-      ],
-      "size": [
-        223.8660125732422,
-        78
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 169
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "link": 170
-        }
-      ],
-      "outputs": [
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "slot_index": 0,
-          "links": [
-            166
-          ]
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "slot_index": 1,
-          "links": [
-            167
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "LTXVConditioning"
-      },
-      "widgets_values": [
-        25
       ]
     },
     {
@@ -571,7 +516,7 @@
       ],
       "size": [
         315,
-        130
+        154
       ],
       "flags": {},
       "order": 8,
@@ -594,15 +539,70 @@
         }
       ],
       "properties": {
-        "cnr_id": "teacache",
+        "aux_id": "welltop-cn/ComfyUI-TeaCache",
         "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
-        "Node name for S&R": "TeaCache"
+        "Node name for S&R": "TeaCache",
+        "cnr_id": "teacache"
       },
       "widgets_values": [
         "ltxv",
         0.06,
         0,
-        1
+        1,
+        "cuda"
+      ]
+    },
+    {
+      "id": 69,
+      "type": "LTXVConditioning",
+      "pos": [
+        920,
+        98
+      ],
+      "size": [
+        223.8660125732422,
+        78
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 169
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 170
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            166
+          ]
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "slot_index": 1,
+          "links": [
+            167
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "LTXVConditioning"
+      },
+      "widgets_values": [
+        25
       ]
     }
   ],
@@ -738,6 +738,7 @@
         304.2520181935422
       ]
     },
+    "frontendVersion": "1.18.9",
     "node_versions": {
       "comfy-core": "0.3.26",
       "ComfyUI-VideoHelperSuite": "124c913ccdd8a585734ea758c35fa1bab8499c99",
@@ -747,8 +748,7 @@
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true,
-    "frontendVersion": "1.19.9"
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

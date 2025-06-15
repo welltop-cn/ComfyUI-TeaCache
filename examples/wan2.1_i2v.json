@@ -77,11 +77,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
-        [
-          false,
-          true
-        ]
+        "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走"
       ],
       "color": "#322",
       "bgcolor": "#533"
@@ -205,11 +201,7 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "a cute anime girl with massive fennec ears and a big fluffy tail wearing a maid outfit turning around",
-        [
-          false,
-          true
-        ]
+        "a cute anime girl with massive fennec ears and a big fluffy tail wearing a maid outfit turning around"
       ],
       "color": "#232",
       "bgcolor": "#353"
@@ -254,46 +246,6 @@
       "widgets_values": [
         "flux_dev_example.png",
         "image"
-      ]
-    },
-    {
-      "id": 54,
-      "type": "ModelSamplingSD3",
-      "pos": [
-        510,
-        70
-      ],
-      "size": [
-        315,
-        58
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 117
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
-          "links": [
-            111
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "ModelSamplingSD3"
-      },
-      "widgets_values": [
-        8
       ]
     },
     {
@@ -638,7 +590,7 @@
       ],
       "size": [
         337.4713439941406,
-        130
+        154
       ],
       "flags": {},
       "order": 8,
@@ -661,15 +613,57 @@
         }
       ],
       "properties": {
-        "cnr_id": "teacache",
+        "aux_id": "welltop-cn/ComfyUI-TeaCache",
         "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
-        "Node name for S&R": "TeaCache"
+        "Node name for S&R": "TeaCache",
+        "cnr_id": "teacache"
       },
       "widgets_values": [
         "wan2.1_i2v_480p_14B_ret_mode",
         0.30000000000000004,
         0.10000000000000002,
-        1
+        1,
+        "cuda"
+      ]
+    },
+    {
+      "id": 54,
+      "type": "ModelSamplingSD3",
+      "pos": [
+        516.363525390625,
+        79.99998474121094
+      ],
+      "size": [
+        315,
+        58
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 117
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            111
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "ModelSamplingSD3"
+      },
+      "widgets_values": [
+        8
       ]
     }
   ],
@@ -829,6 +823,7 @@
         255.9140408750332
       ]
     },
+    "frontendVersion": "1.18.9",
     "node_versions": {
       "comfy-core": "0.3.26",
       "ComfyUI-VideoHelperSuite": "124c913ccdd8a585734ea758c35fa1bab8499c99",
@@ -838,8 +833,7 @@
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
-    "VHS_KeepIntermediate": true,
-    "frontendVersion": "1.19.9"
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

@@ -1,9 +1,93 @@
 {
   "id": "01d66ae9-78be-4a8d-b737-24eee5e1d447",
   "revision": 0,
-  "last_node_id": 75,
+  "last_node_id": 74,
   "last_link_id": 165,
   "nodes": [
+    {
+      "id": 40,
+      "type": "CLIPTextEncode",
+      "pos": [
+        530,
+        260
+      ],
+      "size": [
+        432,
+        192
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 112
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            114
+          ]
+        }
+      ],
+      "title": "Negative Prompt",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "bad ugly jpeg artifacts"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 70,
+      "type": "ModelSamplingSD3",
+      "pos": [
+        750,
+        -90
+      ],
+      "size": [
+        210,
+        58
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 165
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            163
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.34",
+        "Node name for S&R": "ModelSamplingSD3"
+      },
+      "widgets_values": [
+        6.000000000000001
+      ]
+    },
     {
       "id": 8,
       "type": "VAEDecode",
@@ -121,81 +205,18 @@
       "bgcolor": "#335"
     },
     {
-      "id": 72,
-      "type": "MarkdownNote",
-      "pos": [
-        1010,
-        430
-      ],
-      "size": [
-        300,
-        450
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "Sampling Settings",
-      "properties": {},
-      "widgets_values": [
-        "## Official sampling settings\n\nProvided for reference, my workflows may have slightly different settings.\n\n### HiDream Full\n\n* hidream_i1_full_fp16.safetensors\n* shift: 3.0\n* steps: 50\n* sampler: uni_pc\n* scheduler: simple\n* cfg: 5.0\n\n### HiDream Dev\n\n* hidream_i1_dev_bf16.safetensors\n* shift: 6.0\n* steps: 28\n* sampler: lcm\n* scheduler: normal\n* cfg: 1.0 (no negative prompt)\n\n### HiDream Fast\n\n* hidream_i1_fast_bf16.safetensors\n* shift: 3.0\n* steps: 16\n* sampler: lcm\n* scheduler: normal\n* cfg: 1.0 (no negative prompt)\n"
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 70,
-      "type": "ModelSamplingSD3",
-      "pos": [
-        750,
-        -90
-      ],
-      "size": [
-        210,
-        58
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 165
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            163
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "ModelSamplingSD3"
-      },
-      "widgets_values": [
-        3.0000000000000004
-      ]
-    },
-    {
       "id": 53,
       "type": "EmptySD3LatentImage",
       "pos": [
-        640,
-        500
+        620,
+        340
       ],
       "size": [
         315,
         106
       ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -220,11 +241,35 @@
       ]
     },
     {
+      "id": 72,
+      "type": "MarkdownNote",
+      "pos": [
+        1010,
+        430
+      ],
+      "size": [
+        300,
+        450
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Sampling Settings",
+      "properties": {},
+      "widgets_values": [
+        "## Official sampling settings\n\nProvided for reference, my workflows may have slightly different settings.\n\n### HiDream Full\n\n* hidream_i1_full_fp16.safetensors\n* shift: 3.0\n* steps: 50\n* sampler: uni_pc\n* scheduler: simple\n* cfg: 5.0\n\n### HiDream Dev\n\n* hidream_i1_dev_bf16.safetensors\n* shift: 6.0\n* steps: 28\n* sampler: lcm\n* scheduler: normal\n* cfg: 1.0 (no negative prompt)\n\n### HiDream Fast\n\n* hidream_i1_fast_bf16.safetensors\n* shift: 3.0\n* steps: 16\n* sampler: lcm\n* scheduler: normal\n* cfg: 1.0 (no negative prompt)\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
       "id": 73,
       "type": "Note",
       "pos": [
-        221.36090087890625,
-        -222.29476928710938
+        230,
+        -220
       ],
       "size": [
         250,
@@ -241,51 +286,6 @@
       ],
       "color": "#432",
       "bgcolor": "#653"
-    },
-    {
-      "id": 40,
-      "type": "CLIPTextEncode",
-      "pos": [
-        530,
-        260
-      ],
-      "size": [
-        432,
-        192
-      ],
-      "flags": {
-        "collapsed": false
-      },
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 112
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "slot_index": 0,
-          "links": [
-            114
-          ]
-        }
-      ],
-      "title": "Negative Prompt",
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.34",
-        "Node name for S&R": "CLIPTextEncode"
-      },
-      "widgets_values": [
-        "blurry"
-      ],
-      "color": "#322",
-      "bgcolor": "#533"
     },
     {
       "id": 16,
@@ -360,7 +360,7 @@
         "Node name for S&R": "UNETLoader"
       },
       "widgets_values": [
-        "hidream_i1_full_fp16.safetensors",
+        "hidream_i1_dev_bf16.safetensors",
         "default"
       ],
       "color": "#223",
@@ -449,21 +449,21 @@
         "Node name for S&R": "KSampler"
       },
       "widgets_values": [
-        221267224284100,
+        88140548183682,
         "fixed",
-        30,
-        5,
+        28,
+        1,
         "euler",
         "simple",
         1
       ]
     },
     {
-      "id": 75,
+      "id": 74,
       "type": "TeaCache",
       "pos": [
-        714.1507568359375,
-        -301.98236083984375
+        496.1219177246094,
+        -294.6657409667969
       ],
       "size": [
         270,
@@ -490,13 +490,14 @@
       ],
       "properties": {
         "cnr_id": "teacache",
-        "ver": "efe06530d43486df4431d4c7dea1873b738c647a",
-        "Node name for S&R": "TeaCache"
+        "ver": "9db9e3393f674bd32cc1ce5ce271fb4994ef19c8",
+        "Node name for S&R": "TeaCache",
+        "aux_id": "welltop-cn/ComfyUI-TeaCache"
       },
       "widgets_values": [
-        "hidream_i1_full",
-        0.3500000000000001,
-        0.10000000000000002,
+        "hidream_i1_dev",
+        1.0000000000000002,
+        0,
         1,
         "cuda"
       ]
@@ -579,13 +580,13 @@
       164,
       69,
       0,
-      75,
+      74,
       0,
       "MODEL"
     ],
     [
       165,
-      75,
+      74,
       0,
       70,
       0,
@@ -596,10 +597,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7627768444385521,
+      "scale": 0.6934334949441353,
       "offset": [
-        -100.16782994584048,
-        512.6944296637521
+        141.0009287594034,
+        316.78500858463906
       ]
     },
     "frontendVersion": "1.18.9",
