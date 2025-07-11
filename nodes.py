@@ -16,6 +16,7 @@ from comfy.ldm.wan.model import sinusoidal_embedding_1d
 
 SUPPORTED_MODELS_COEFFICIENTS = {
     "flux": [4.98651651e+02, -2.83781631e+02, 5.58554382e+01, -3.82021401e+00, 2.64230861e-01],
+    "flux-kontext": [-1.04655119e+03, 3.12563399e+02, -1.69500694e+01, 4.10995971e-01, 3.74537863e-02],
     "ltxv": [2.14700694e+01, -1.28016453e+01, 2.31279151e+00, 7.92487521e-01, 9.69274326e-03],
     "lumina_2": [-8.74643948e+02, 4.66059906e+02, -7.51559762e+01, 5.32836175e+00, -3.27258296e-02],
     "hunyuan_video": [7.33226126e+02, -4.01131952e+02, 6.75869174e+01, -3.14987800e+00, 9.61237896e-02],
@@ -56,7 +57,10 @@ def teacache_flux_forward(
         coefficients = transformer_options.get("coefficients")
         enable_teacache = transformer_options.get("enable_teacache", True)
         cache_device = transformer_options.get("cache_device")
-        
+
+        if y is None:
+            y = torch.zeros((img.shape[0], self.params.vec_in_dim), device=img.device, dtype=img.dtype)
+            
         if img.ndim != 3 or txt.ndim != 3:
             raise ValueError("Input img and txt tensors must have 3 dimensions.")
 
@@ -64,9 +68,8 @@ def teacache_flux_forward(
         img = self.img_in(img)
         vec = self.time_in(timestep_embedding(timesteps, 256).to(img.dtype))
         if self.params.guidance_embed:
-            if guidance is None:
-                raise ValueError("Didn't get guidance strength for guidance distilled model.")
-            vec = vec + self.guidance_in(timestep_embedding(guidance, 256).to(img.dtype))
+            if guidance is not None:
+                vec = vec + self.guidance_in(timestep_embedding(guidance, 256).to(img.dtype))
 
         vec = vec + self.vector_in(y[:,:self.params.vec_in_dim])
         txt = self.txt_in(txt)
@@ -90,7 +93,7 @@ def teacache_flux_forward(
             self.accumulated_rel_l1_distance = 0
         else:
             try:
-                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean()))
+                self.accumulated_rel_l1_distance += poly1d(coefficients, ((modulated_inp-self.previous_modulated_input).abs().mean() / self.previous_modulated_input.abs().mean())).abs()
                 if self.accumulated_rel_l1_distance < rel_l1_thresh:
                     should_calc = False
                 else:
@@ -151,6 +154,9 @@ def teacache_flux_forward(
                                         & (timesteps >= node_data['sigma_end'])):
                                 img = img + node_data['weight'] * self.pulid_ca[ca_idx](node_data['embedding'], img)
                         ca_idx += 1
+
+            if img.dtype == torch.float16:
+                img = torch.nan_to_num(img, nan=0.0, posinf=65504, neginf=-65504)
 
             img = torch.cat((txt, img), 1)
 
@@ -839,7 +845,7 @@ class TeaCache:
         return {
             "required": {
                 "model": ("MODEL", {"tooltip": "The diffusion model the TeaCache will be applied to."}),
-                "model_type": (["flux", "ltxv", "lumina_2", "hunyuan_video", "hidream_i1_full", "hidream_i1_dev", "hidream_i1_fast", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B", "wan2.1_t2v_1.3B_ret_mode", "wan2.1_t2v_14B_ret_mode", "wan2.1_i2v_480p_14B_ret_mode", "wan2.1_i2v_720p_14B_ret_mode"], {"default": "flux", "tooltip": "Supported diffusion model."}),
+                "model_type": (["flux", "flux-kontext", "ltxv", "lumina_2", "hunyuan_video", "hidream_i1_full", "hidream_i1_dev", "hidream_i1_fast", "wan2.1_t2v_1.3B", "wan2.1_t2v_14B", "wan2.1_i2v_480p_14B", "wan2.1_i2v_720p_14B", "wan2.1_t2v_1.3B_ret_mode", "wan2.1_t2v_14B_ret_mode", "wan2.1_i2v_480p_14B_ret_mode", "wan2.1_i2v_720p_14B_ret_mode"], {"default": "flux", "tooltip": "Supported diffusion model."}),
                 "rel_l1_thresh": ("FLOAT", {"default": 0.4, "min": 0.0, "max": 10.0, "step": 0.01, "tooltip": "How strongly to cache the output of diffusion model. This value must be non-negative."}),
                 "start_percent": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "The start percentage of the steps that will apply TeaCache."}),
                 "end_percent": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01, "tooltip": "The end percentage of the steps that will apply TeaCache."}),
