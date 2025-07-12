@@ -74,7 +74,7 @@ To use TeaCache node, simply add `TeaCache` node to your workflow after `Load Di
 |:----------------------------:|:-----------------:|:-----------------:|:-----------------:|:-----------------:|
 | FLUX                         |        0.4        |         0         |         1         |        ~2x        |
 | PuLID-FLUX                   |        0.4        |         0         |         1         |        ~1.7x      |
-| FLUX-Kontext                 |        0.22       |         0.2       |         1         |        ~2x        |
+| FLUX-Kontext                 |        0.22       |         0.2       |         0.9       |        ~2x        |
 | HiDream-I1-Full              |        0.35       |         0.1       |         1         |        ~2x        |
 | HiDream-I1-Dev               |        1          |         0         |         1         |        ~2x        |
 | HiDream-I1-Fast              |        1.5        |         0         |         0.9       |        ~1.7x      |
