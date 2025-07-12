@@ -745,41 +745,120 @@
       "widgets_values": []
     },
     {
-      "id": 12,
-      "type": "UNETLoader",
+      "id": 9,
+      "type": "SaveImage",
       "pos": [
-        48,
-        144
+        1102.3897705078125,
+        367.26214599609375
+      ],
+      "size": [
+        985.3012084960938,
+        1060.3828125
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 9
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.43",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "BasicScheduler",
+      "pos": [
+        480,
+        1008
       ],
       "size": [
         315,
-        82
+        106
       ],
       "flags": {},
-      "order": 8,
+      "order": 18,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 55
+        }
+      ],
       "outputs": [
         {
-          "name": "MODEL",
-          "type": "MODEL",
-          "slot_index": 0,
+          "name": "SIGMAS",
+          "type": "SIGMAS",
           "links": [
-            160
+            20
           ]
         }
       ],
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.3.43",
-        "Node name for S&R": "UNETLoader"
+        "Node name for S&R": "BasicScheduler"
       },
       "widgets_values": [
-        "flux1-kontext-dev.safetensors",
-        "default"
+        "simple",
+        28,
+        1
+      ]
+    },
+    {
+      "id": 59,
+      "type": "TeaCache",
+      "pos": [
+        129.43606567382812,
+        1152.553466796875
       ],
-      "color": "#223",
-      "bgcolor": "#335"
+      "size": [
+        270,
+        154
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 160
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            159
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "teacache",
+        "ver": "bf45cdf6d6c447fc59333d409d25a76beab1205d",
+        "Node name for S&R": "TeaCache",
+        "aux_id": "welltop-cn/ComfyUI-TeaCache"
+      },
+      "widgets_values": [
+        "flux-kontext",
+        0.22000000000000003,
+        0.20000000000000004,
+        0.9000000000000001,
+        "cuda"
+      ]
     },
     {
       "id": 6,
@@ -829,45 +908,41 @@
       "bgcolor": "#353"
     },
     {
-      "id": 17,
-      "type": "BasicScheduler",
+      "id": 12,
+      "type": "UNETLoader",
       "pos": [
-        480,
-        1008
+        48,
+        144
       ],
       "size": [
         315,
-        106
+        82
       ],
       "flags": {},
-      "order": 18,
+      "order": 8,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 55
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "SIGMAS",
-          "type": "SIGMAS",
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
           "links": [
-            20
+            160
           ]
         }
       ],
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.3.43",
-        "Node name for S&R": "BasicScheduler"
+        "Node name for S&R": "UNETLoader"
       },
       "widgets_values": [
-        "simple",
-        28,
-        1
-      ]
+        "flux1-kontext-dev.safetensors",
+        "default"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
     },
     {
       "id": 25,
@@ -904,81 +979,6 @@
       ],
       "color": "#2a363b",
       "bgcolor": "#3f5159"
-    },
-    {
-      "id": 59,
-      "type": "TeaCache",
-      "pos": [
-        129.43606567382812,
-        1152.553466796875
-      ],
-      "size": [
-        270,
-        154
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 160
-        }
-      ],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "links": [
-            159
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "teacache",
-        "ver": "bf45cdf6d6c447fc59333d409d25a76beab1205d",
-        "Node name for S&R": "TeaCache",
-        "aux_id": "welltop-cn/ComfyUI-TeaCache"
-      },
-      "widgets_values": [
-        "flux-kontext",
-        0.22000000000000003,
-        0.20000000000000004,
-        1,
-        "cuda"
-      ]
-    },
-    {
-      "id": 9,
-      "type": "SaveImage",
-      "pos": [
-        1102.3897705078125,
-        367.26214599609375
-      ],
-      "size": [
-        985.3012084960938,
-        1060.3828125
-      ],
-      "flags": {},
-      "order": 23,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 9
-        }
-      ],
-      "outputs": [],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.43",
-        "Node name for S&R": "SaveImage"
-      },
-      "widgets_values": [
-        "ComfyUI"
-      ]
     }
   ],
   "links": [
@@ -1187,10 +1187,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6830134553650713,
+      "scale": 0.8264462809917354,
       "offset": [
-        -148.2795409820061,
-        90.00161792776963
+        245.97328534702282,
+        -640.0475517132411
       ]
     },
     "frontendVersion": "1.23.4",
