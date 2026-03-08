@@ -9,9 +9,28 @@ from typing import Optional
 from unittest.mock import patch
 
 from comfy.ldm.flux.layers import timestep_embedding, apply_mod
-from comfy.ldm.lightricks.model import precompute_freqs_cis
+from comfy.ldm.lightricks.model import generate_freq_grid_pytorch, generate_freqs, interleaved_freqs_cis
 from comfy.ldm.lightricks.symmetric_patchifier import latent_to_pixel_coords
 from comfy.ldm.wan.model import sinusoidal_embedding_1d
+
+def precompute_freqs_cis(
+    indices_grid,
+    dim,
+    out_dtype,
+    theta=10000.0,
+    max_pos=[20, 2048, 2048],
+    use_middle_indices_grid=False,
+    num_attention_heads=32,
+):
+    indices = generate_freq_grid_pytorch(theta, indices_grid.shape[1], dim, indices_grid.device)
+    freqs = generate_freqs(indices, indices_grid, max_pos, use_middle_indices_grid)
+
+    # 2 because of cos and sin by 3 for (t, x, y), 1 for temporal only
+    n_elem = 2 * indices_grid.shape[1]
+    cos_freq, sin_freq = interleaved_freqs_cis(freqs, dim % n_elem)
+    # The new LTXVModel in ComfyUI returns (cos, sin, split_mode)
+    # Since we are using interleaved mode (default), split_mode is False
+    return cos_freq.to(out_dtype), sin_freq.to(out_dtype), False
 
 
 SUPPORTED_MODELS_COEFFICIENTS = {
